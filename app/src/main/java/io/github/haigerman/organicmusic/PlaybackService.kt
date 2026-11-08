@@ -19,15 +19,18 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import io.github.haigerman.organicmusic.audio.AssetSampleLoader
 import io.github.haigerman.organicmusic.audio.AudioEngine
 import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.data.MusicRepository
 import io.github.haigerman.organicmusic.data.MusicState
 import io.github.haigerman.organicmusic.data.NowPlaying
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Vordergrund-Dienst: komponiert und spielt weiter, auch wenn die App geschlossen
@@ -53,6 +56,8 @@ class PlaybackService : LifecycleService() {
     }
 
     private val engine by lazy { AudioEngine(SAMPLE_RATE) }
+    private val loader by lazy { AssetSampleLoader(this) }
+    private var loadJob: Job? = null
     private var playing = false
     private var foreground = false
     private var ticker: Job? = null
@@ -141,9 +146,26 @@ class PlaybackService : LifecycleService() {
         // oder noch gar nichts geladen ist. Pausiert bleibt das alte Stück, bis es weitergeht.
         val needsSong = songStyle != s.style || songPiece != s.pieceRequest
         if (needsSong && (s.playing || songStyle == null)) {
-            engine.mixer.play(s.style.create(SAMPLE_RATE, System.nanoTime(), set.bpm.toFloat(), set.intensity))
-            songStyle = s.style
+            val style = s.style
+            songStyle = style
             songPiece = s.pieceRequest
+            loadJob?.cancel()
+            loadJob = lifecycleScope.launch {
+                MusicRepository.setLoading(true)
+                try {
+                    // Instrumente laden (beim ersten Mal dekodieren) – im Hintergrund
+                    val song = withContext(Dispatchers.Default) {
+                        val now = MusicRepository.state.value.settings(style)
+                        style.create(SAMPLE_RATE, System.nanoTime(), now.bpm.toFloat(), now.intensity, loader)
+                    }
+                    val latest = MusicRepository.state.value.settings(style)
+                    song.targetBpm = latest.bpm.toFloat()
+                    song.targetIntensity = latest.intensity
+                    engine.mixer.play(song)
+                } finally {
+                    MusicRepository.setLoading(false)
+                }
+            }
         }
         engine.mixer.song?.let {
             it.targetBpm = set.bpm.toFloat()

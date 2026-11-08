@@ -5,7 +5,6 @@ import io.github.haigerman.organicmusic.audio.dsp.Drift
 import io.github.haigerman.organicmusic.audio.dsp.OnePole
 import io.github.haigerman.organicmusic.audio.dsp.PinkNoise
 import io.github.haigerman.organicmusic.audio.dsp.Rng
-import io.github.haigerman.organicmusic.audio.dsp.Sine
 
 /** Schallplatten-Atmosphäre: leises Rauschen und unregelmäßiges Knistern. */
 class Vinyl(sr: Int, private val rng: Rng) : Instrument(sr) {
@@ -66,36 +65,6 @@ class Waves(private val srate: Int, private val rng: Rng) : Instrument(srate) {
             val a = (0.15f + 0.85f * swell) * drift.value * 1.4f
             l[i] += hpL.hp(lpL.lp(pinkL.next())) * a * 1.6f
             r[i] += hpR.hp(lpR.lp(pinkR.next())) * a * 1.6f
-        }
-    }
-
-    override fun reset() {}
-}
-
-/** Sehr tiefer, schwebender Grundton (zwei leicht verstimmte Sinus). */
-class Drone(sr: Int, rng: Rng) : Instrument(sr) {
-    private var p1 = rng.float()
-    private var p2 = rng.float()
-    private var freq = 55f
-    private var target = 55f
-    private val swell = Drift(sr, rng, 6f, 14f, 0.55f, 1f)
-
-    fun setNote(hz: Float) {
-        target = hz
-    }
-
-    override fun render(l: FloatArray, r: FloatArray, n: Int) {
-        val g = swell.advance(n)
-        for (i in 0 until n) {
-            freq += (target - freq) * 0.00002f
-            p1 += freq / sr
-            if (p1 >= 1f) p1 -= 1f
-            p2 += freq * 1.003f / sr
-            if (p2 >= 1f) p2 -= 1f
-            val o = Sine.at(p1 * 2f) * 0.25f
-            val s = (Sine.at(p1) + Sine.at(p2) + o) * 0.35f * g
-            l[i] += s
-            r[i] += s
         }
     }
 

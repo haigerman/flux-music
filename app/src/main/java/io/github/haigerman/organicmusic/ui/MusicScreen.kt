@@ -33,7 +33,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -108,6 +107,7 @@ private val Mood.rhythmic: Boolean get() = this == Mood.SPORT || this == Mood.FO
 fun MusicScreen(onPlayPause: () -> Unit) {
     val state by MusicRepository.state.collectAsStateWithLifecycle()
     val now by MusicRepository.nowPlaying.collectAsStateWithLifecycle()
+    val loading by MusicRepository.loading.collectAsStateWithLifecycle()
     val deep by animateColorAsState(state.mood.deep, tween(900), label = "deep")
 
     Box(
@@ -127,7 +127,7 @@ fun MusicScreen(onPlayPause: () -> Unit) {
                 }
                 item(key = "controls") { Controls(state) }
             }
-            BottomPanel(state, now, onPlayPause, Modifier.navigationBarsPadding())
+            BottomPanel(state, now, loading, onPlayPause, Modifier.navigationBarsPadding())
         }
     }
 }
@@ -266,7 +266,7 @@ private fun Controls(state: MusicState) {
 }
 
 @Composable
-private fun BottomPanel(state: MusicState, now: NowPlaying?, onPlayPause: () -> Unit, modifier: Modifier = Modifier) {
+private fun BottomPanel(state: MusicState, now: NowPlaying?, loading: Boolean, onPlayPause: () -> Unit, modifier: Modifier = Modifier) {
     val accent = state.mood.accent
     Column(
         modifier
@@ -275,7 +275,7 @@ private fun BottomPanel(state: MusicState, now: NowPlaying?, onPlayPause: () -> 
             .padding(top = 12.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        NowPlayingLine(state, now)
+        NowPlayingLine(state, now, loading)
         Spacer(Modifier.height(10.dp))
         PlayButton(state, now, onPlayPause)
         Spacer(Modifier.height(6.dp))
@@ -306,9 +306,11 @@ private fun BottomPanel(state: MusicState, now: NowPlaying?, onPlayPause: () -> 
 }
 
 @Composable
-private fun NowPlayingLine(state: MusicState, now: NowPlaying?) {
+private fun NowPlayingLine(state: MusicState, now: NowPlaying?, loading: Boolean) {
     val info = now?.info
-    val text = if (state.playing && info != null && info.key.isNotEmpty()) {
+    val text = if (state.playing && loading) {
+        "Instrumente werden geladen …"
+    } else if (state.playing && info != null && info.key.isNotEmpty()) {
         "${info.key}  ·  ${info.chord}  ·  ${info.part}"
     } else if (state.playing) {
         "Wird komponiert …"

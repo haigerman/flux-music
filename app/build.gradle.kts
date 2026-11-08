@@ -53,12 +53,18 @@ android {
         compose = true
     }
 
+    // Ogg-Dateien unkomprimiert ins APK, damit sie direkt gelesen werden können (openFd)
+    androidResources {
+        noCompress += "ogg"
+    }
+
     testOptions {
         unitTests.isReturnDefaultValues = true
         unitTests.all {
             // Länge der WAV-Vorschauen: ./gradlew :app:testDebugUnitTest -PpreviewSeconds=180
             it.systemProperty("previewSeconds", (findProperty("previewSeconds") as String?) ?: "60")
             it.testLogging.showStandardStreams = true
+            it.maxHeapSize = "3g"
         }
     }
 }
@@ -68,6 +74,15 @@ kotlin {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 }
+
+// Quellenangaben der Instrumente (CREDITS.md) auch ins APK packen
+val creditsDir = layout.buildDirectory.dir("generated/credits")
+val copyCredits by tasks.registering(Copy::class) {
+    from(rootProject.file("CREDITS.md"))
+    into(creditsDir)
+}
+android.sourceSets["main"].assets.srcDir(creditsDir)
+tasks.named("preBuild") { dependsOn(copyCredits) }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.12.01")

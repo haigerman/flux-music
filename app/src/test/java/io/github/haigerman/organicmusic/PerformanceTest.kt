@@ -10,7 +10,7 @@ class PerformanceTest {
         val sr = 48000
         for (mood in Style.entries) {
             val mixer = MusicMixer(sr)
-            mixer.play(mood.create(sr, 99L, mood.bpmDefault.toFloat(), 1f))
+            mixer.play(mood.create(sr, 99L, mood.bpmDefault.toFloat(), 1f, TestSamples))
             mixer.setMasterImmediate(1f)
             val buf = FloatArray(2048)
             repeat(400) { mixer.render(buf, 1024) } // Aufwärmen

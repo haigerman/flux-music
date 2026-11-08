@@ -406,7 +406,8 @@ class PingPongDelay(private val sr: Int, maxSeconds: Float = 1.6f) {
     private fun read(buf: FloatArray, d: Float): Float {
         var p = w - d
         if (p < 0f) p += size
-        val i = p.toInt()
+        var i = p.toInt()
+        if (i >= size) i -= size
         val f = p - i
         val j = if (i + 1 >= size) 0 else i + 1
         return buf[i] + (buf[j] - buf[i]) * f
@@ -419,62 +420,6 @@ class PingPongDelay(private val sr: Int, maxSeconds: Float = 1.6f) {
         bufL[w] = hpL.hp(dampL.lp(input + r * feedback))
         bufR[w] = hpR.hp(dampR.lp(l * feedback))
         if (++w >= size) w = 0
-        outL = l
-        outR = r
-    }
-}
-
-/** Einfacher Stereo-Hall nach dem Freeverb-Prinzip (Kammfilter + Allpässe). */
-class Reverb(
-    sampleRate: Int,
-    private val roomSize: Float = 0.9f,
-    private val damping: Float = 0.35f,
-    private val inputGain: Float = 0.012f,
-) {
-    private val scale = sampleRate / 44100.0
-
-    private inner class Comb(len: Int) {
-        val buf = FloatArray((len * scale).toInt().coerceAtLeast(1))
-        var idx = 0
-        var store = 0f
-        fun process(x: Float): Float {
-            val out = buf[idx]
-            store = out * (1 - damping) + store * damping
-            buf[idx] = x + store * roomSize
-            if (++idx >= buf.size) idx = 0
-            return out
-        }
-    }
-
-    private inner class AllPass(len: Int) {
-        val buf = FloatArray((len * scale).toInt().coerceAtLeast(1))
-        var idx = 0
-        fun process(x: Float): Float {
-            val b = buf[idx]
-            buf[idx] = x + b * 0.5f
-            if (++idx >= buf.size) idx = 0
-            return b - x
-        }
-    }
-
-    private val combL = intArrayOf(1116, 1188, 1277, 1356, 1422, 1491).map { Comb(it) }.toTypedArray()
-    private val combR = intArrayOf(1139, 1211, 1300, 1379, 1445, 1514).map { Comb(it) }.toTypedArray()
-    private val apL = intArrayOf(556, 441, 341).map { AllPass(it) }.toTypedArray()
-    private val apR = intArrayOf(579, 464, 364).map { AllPass(it) }.toTypedArray()
-
-    var outL = 0f
-        private set
-    var outR = 0f
-        private set
-
-    fun process(input: Float) {
-        val x = input * inputGain
-        var l = 0f
-        var r = 0f
-        for (c in combL) l += c.process(x)
-        for (c in combR) r += c.process(x)
-        for (a in apL) l = a.process(l)
-        for (a in apR) r = a.process(r)
         outL = l
         outR = r
     }

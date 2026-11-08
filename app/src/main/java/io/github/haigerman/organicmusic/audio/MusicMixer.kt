@@ -119,14 +119,30 @@ class MusicMixer(private val sampleRate: Int, private val blockSize: Int = 1024)
         master = mTo
         for (i in 0 until n) {
             val m = mFrom + (mTo - mFrom) * (i * inv)
-            out[(offset + i) * 2] = softClip(mixL[i] * m)
-            out[(offset + i) * 2 + 1] = softClip(mixR[i] * m)
+            var l = mixL[i] * m
+            var r = mixR[i] * m
+            // Peak-Limiter: senkt kurz die Lautstärke statt die Wellenform zu verformen
+            val peak = maxOf(kotlin.math.abs(l), kotlin.math.abs(r))
+            if (peak * limGain > LIMIT) limGain = LIMIT / peak
+            l *= limGain
+            r *= limGain
+            limGain += (1f - limGain) * limRelease
+            out[(offset + i) * 2] = safety(l)
+            out[(offset + i) * 2 + 1] = safety(r)
         }
     }
 
     private fun approach(from: Float, to: Float, step: Float): Float =
         if (from < to) minOf(to, from + step) else maxOf(to, from - step)
 
-    private fun softClip(x: Float): Float =
-        if (x > -0.6f && x < 0.6f) x else (0.6f + 0.4f * tanh((kotlin.math.abs(x) - 0.6f) / 0.4f)) * kotlin.math.sign(x)
+    private var limGain = 1f
+    private val limRelease = (1.0 - kotlin.math.exp(-1.0 / (0.08 * sampleRate))).toFloat()
+
+    /** Letzte Sicherung oberhalb des Limiters (greift praktisch nie). */
+    private fun safety(x: Float): Float =
+        if (x > -0.95f && x < 0.95f) x else (0.95f + 0.05f * tanh((kotlin.math.abs(x) - 0.95f) / 0.05f)) * kotlin.math.sign(x)
+
+    private companion object {
+        const val LIMIT = 0.89f // -1 dBFS
+    }
 }

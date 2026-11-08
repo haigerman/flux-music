@@ -49,6 +49,14 @@ object MusicRepository {
     private val _nowPlaying = MutableStateFlow<NowPlaying?>(null)
     val nowPlaying: StateFlow<NowPlaying?> = _nowPlaying.asStateFlow()
 
+    /** Werden gerade Instrumente geladen (beim ersten Mal inkl. Dekodieren)? */
+    private val _loading = MutableStateFlow(false)
+    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+
+    fun setLoading(v: Boolean) {
+        _loading.value = v
+    }
+
     private var prefs: SharedPreferences? = null
 
     fun init(context: Context) {

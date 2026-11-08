@@ -1,5 +1,7 @@
 package io.github.haigerman.organicmusic.audio
 
+import io.github.haigerman.organicmusic.audio.samples.SampleBank
+import io.github.haigerman.organicmusic.audio.samples.SampleLoader
 import io.github.haigerman.organicmusic.audio.songs.AmbientSong
 import io.github.haigerman.organicmusic.audio.songs.FlowSong
 import io.github.haigerman.organicmusic.audio.songs.FocusSong
@@ -36,26 +38,36 @@ enum class Style(
     val bpmMax: Int,
     val bpmDefault: Int,
     val intensityDefault: Float,
+    /** Benötigte Sample-Instrumente (assets/instruments/<id>). */
+    val instruments: List<String>,
 ) {
-    SPORT_GROOVE(Mood.SPORT, "groove", "Bass & Groove", 110, 175, 128, 0.75f),
-    SPORT_ROCK(Mood.SPORT, "rock", "Rock", 100, 170, 128, 0.75f),
-    FOCUS(Mood.FOCUS, "lofi", "Lo-Fi", 65, 100, 82, 0.5f),
-    FLOW(Mood.FLOW, "house", "House", 96, 124, 112, 0.6f),
-    RELAX(Mood.RELAX, "ambient", "Ambient", 50, 80, 64, 0.5f),
-    SLEEP(Mood.SLEEP, "ambient", "Ambient", 40, 60, 50, 0.3f);
+    SPORT_GROOVE(Mood.SPORT, "groove", "Bass & Groove", 110, 175, 128, 0.75f, listOf("drums", "claps")),
+    SPORT_ROCK(Mood.SPORT, "rock", "Rock", 100, 170, 128, 0.75f, listOf("drums", "ebass", "guitar", "guitar_mute")),
+    FOCUS(Mood.FOCUS, "lofi", "Lo-Fi", 65, 100, 82, 0.5f, listOf("drums_lofi", "wurli", "upright", "glock", "flute", "violas")),
+    FLOW(
+        Mood.FLOW, "house", "House", 96, 124, 112, 0.6f,
+        listOf("drums", "perc", "claps", "piano", "ebass", "marimba", "flute", "violins", "violas"),
+    ),
+    RELAX(Mood.RELAX, "ambient", "Ambient", 50, 80, 64, 0.5f, listOf("piano", "violins", "violas", "cellos", "contrabass", "harp", "glock")),
+    SLEEP(Mood.SLEEP, "ambient", "Ambient", 40, 60, 50, 0.3f, listOf("piano", "violas", "cellos", "contrabass", "harp"));
 
     /** Schlüssel für gespeicherte Einstellungen (der erste Stil nutzt den Namen der Stimmung). */
     val key: String get() = if (this == mood.styles.first()) mood.id else "${mood.id}_$id"
 
-    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float): Song = when (this) {
-        SPORT_GROOVE -> SportSong(sampleRate, seed, bpm, intensity)
-        SPORT_ROCK -> RockSong(sampleRate, seed, bpm, intensity)
-        FOCUS -> FocusSong(sampleRate, seed, bpm, intensity)
-        FLOW -> FlowSong(sampleRate, seed, bpm, intensity)
-        RELAX -> AmbientSong(sampleRate, seed, bpm, intensity, sleep = false)
-        SLEEP -> AmbientSong(sampleRate, seed, bpm, intensity, sleep = true)
+    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBank): Song = when (this) {
+        SPORT_GROOVE -> SportSong(sampleRate, seed, bpm, intensity, bank)
+        SPORT_ROCK -> RockSong(sampleRate, seed, bpm, intensity, bank)
+        FOCUS -> FocusSong(sampleRate, seed, bpm, intensity, bank)
+        FLOW -> FlowSong(sampleRate, seed, bpm, intensity, bank)
+        RELAX -> AmbientSong(sampleRate, seed, bpm, intensity, bank, sleep = false)
+        SLEEP -> AmbientSong(sampleRate, seed, bpm, intensity, bank, sleep = true)
     }
 
+    /** Lädt die Instrumente (falls nötig) und erstellt das Stück. */
+    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, loader: SampleLoader): Song =
+        create(sampleRate, seed, bpm, intensity, SampleBank.load(loader, instruments))
+
     /** Erstellt ein Stück mit Standard-Tempo und -Intensität. */
-    fun create(sampleRate: Int, seed: Long): Song = create(sampleRate, seed, bpmDefault.toFloat(), intensityDefault)
+    fun create(sampleRate: Int, seed: Long, loader: SampleLoader): Song =
+        create(sampleRate, seed, bpmDefault.toFloat(), intensityDefault, loader)
 }

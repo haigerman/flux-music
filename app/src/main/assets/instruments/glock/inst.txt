@@ -1,0 +1,13 @@
+id glock
+sampleRate 48000
+channels 2
+frames 997507
+release 1.0
+sync 1024
+note VSCO 2 CE Glockenspiel – Versilian Studios, CC0
+zone 79 0 81 1 127 0 79.0 2048 192000 -1 -1
+zone 84 82 87 1 127 0 84.0 196096 192000 -1 -1
+zone 91 88 93 1 127 0 91.0 390144 182560 -1 -1
+zone 96 94 99 1 127 0 96.0 574752 192000 -1 -1
+zone 103 100 105 1 127 0 103.0 768800 164157 -1 -1
+zone 108 106 127 1 127 0 108.0 935005 60454 -1 -1

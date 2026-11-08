@@ -1,8 +1,11 @@
 package io.github.haigerman.organicmusic.audio.songs
 
+import io.github.haigerman.organicmusic.audio.dsp.Compressor
+import io.github.haigerman.organicmusic.audio.dsp.Eq
+import io.github.haigerman.organicmusic.audio.dsp.FdnReverb
 import io.github.haigerman.organicmusic.audio.dsp.OnePole
 import io.github.haigerman.organicmusic.audio.dsp.PingPongDelay
-import io.github.haigerman.organicmusic.audio.dsp.Reverb
+import io.github.haigerman.organicmusic.audio.dsp.tapeSaturate
 import io.github.haigerman.organicmusic.audio.dsp.Rng
 import io.github.haigerman.organicmusic.audio.dsp.smoothstep
 import io.github.haigerman.organicmusic.audio.instruments.Instrument
@@ -49,6 +52,11 @@ class Channel(
     var duck: Float = 0f,
     /** Sekunden für eine volle Ein-/Ausblendung. */
     var fade: Float = 2f,
+    /** Klangregelung und Kompressor im Kanal (vor dem Fader). */
+    var eq: Eq? = null,
+    var comp: Compressor? = null,
+    /** Gruppe (z. B. Schlagzeug-Bus); null = direkt auf die Summe. */
+    var bus: Bus? = null,
 ) {
     var target = 0f
     var level = 0f
@@ -56,6 +64,17 @@ class Channel(
 
     /** Ob neue Noten ausgelöst werden sollen. */
     val on: Boolean get() = target > 0.01f
+}
+
+/** Gruppen-Bus: mehrere Kanäle gemeinsam bearbeiten (EQ, Kompressor, Sättigung). */
+class Bus(
+    var gain: Float = 1f,
+    var eq: Eq? = null,
+    var comp: Compressor? = null,
+    var saturation: Float = 0f,
+) {
+    internal val l = FloatArray(512)
+    internal val r = FloatArray(512)
 }
 
 /**
@@ -96,7 +115,13 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
     protected var chordSize = 3
 
     protected val channels = ArrayList<Channel>()
-    protected abstract val reverb: Reverb
+    protected abstract val reverb: FdnReverb
+    protected val busses = ArrayList<Bus>()
+
+    /** Summenbearbeitung: Klangregelung, Kompressor ("Kleber"), Bandsättigung. */
+    protected var masterEq: Eq? = null
+    protected var masterComp: Compressor? = null
+    protected var masterSaturation = 0f
     protected val delay = PingPongDelay(sr)
     protected var delayBeats = 0.75f
     protected var reverbReturn = 1f
@@ -173,7 +198,13 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
         delay: Float = 0f,
         duck: Float = 0f,
         fade: Float = 2f,
-    ): Channel = Channel(instrument, gain, reverb, delay, duck, fade).also { channels += it }
+        eq: Eq? = null,
+        comp: Compressor? = null,
+        bus: Bus? = null,
+    ): Channel = Channel(instrument, gain, reverb, delay, duck, fade, eq, comp, bus).also { channels += it }
+
+    protected fun bus(gain: Float = 1f, eq: Eq? = null, comp: Compressor? = null, saturation: Float = 0f): Bus =
+        Bus(gain, eq, comp, saturation).also { busses += it }
 
     protected fun pump() {
         duckT = 0
@@ -348,19 +379,36 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
             java.util.Arrays.fill(tmpL, 0, n, 0f)
             java.util.Arrays.fill(tmpR, 0, n, 0f)
             ch.instrument.render(tmpL, tmpR, n)
+            ch.eq?.process(tmpL, tmpR, n)
+            ch.comp?.process(tmpL, tmpR, n)
             val g0 = from * ch.gain
             val g1 = to * ch.gain
             val inv = 1f / n
+            val b = ch.bus
+            val outL = b?.l ?: dryL
+            val outR = b?.r ?: dryR
             for (i in 0 until n) {
                 var g = g0 + (g1 - g0) * (i * inv)
                 if (ch.duck > 0f) g *= 1f - ch.duck * duckEnv[i]
                 val l = tmpL[i] * g
                 val r = tmpR[i] * g
-                dryL[i] += l
-                dryR[i] += r
+                outL[i] += l
+                outR[i] += r
                 if (ch.reverb > 0f) revBus[i] += (l + r) * ch.reverb
                 if (ch.delay > 0f) dlyBus[i] += (l + r) * ch.delay
             }
+        }
+        for (b in busses) {
+            b.eq?.process(b.l, b.r, n)
+            b.comp?.process(b.l, b.r, n)
+            if (b.saturation > 0f) tapeSaturate(b.l, b.r, n, b.saturation)
+            val g = b.gain
+            for (i in 0 until n) {
+                dryL[i] += b.l[i] * g
+                dryR[i] += b.r[i] * g
+            }
+            java.util.Arrays.fill(b.l, 0, n, 0f)
+            java.util.Arrays.fill(b.r, 0, n, 0f)
         }
 
         val og = outputGain
@@ -373,8 +421,15 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
         for (i in 0 until n) {
             delay.process(dlyBus[i])
             reverb.process(revBus[i] + (delay.outL + delay.outR) * delayToReverb)
-            var l = (dryL[i] + reverb.outL * reverbReturn + delay.outL * delayReturn) * og
-            var r = (dryR[i] + reverb.outR * reverbReturn + delay.outR * delayReturn) * og
+            dryL[i] += reverb.outL * reverbReturn + delay.outL * delayReturn
+            dryR[i] += reverb.outR * reverbReturn + delay.outR * delayReturn
+        }
+        masterEq?.process(dryL, dryR, n)
+        masterComp?.process(dryL, dryR, n)
+        if (masterSaturation > 0f) tapeSaturate(dryL, dryR, n, masterSaturation)
+        for (i in 0 until n) {
+            var l = dryL[i] * og
+            var r = dryR[i] * og
             if (tone) {
                 l = toneL.lp(l)
                 r = toneR.lp(r)

@@ -23,7 +23,7 @@ class SongRenderTest {
 
     private fun render(mood: Style, seed: Long, intensity: Float = mood.intensityDefault, bpm: Int = mood.bpmDefault): FloatArray {
         val mixer = MusicMixer(sr)
-        mixer.play(mood.create(sr, seed, bpm.toFloat(), intensity))
+        mixer.play(mood.create(sr, seed, bpm.toFloat(), intensity, TestSamples))
         mixer.setMasterImmediate(1f)
         val frames = sr * seconds
         val out = FloatArray(frames * 2)
@@ -86,10 +86,10 @@ class SongRenderTest {
         val chunk = FloatArray(1024 * 2)
         var pos = 0
         for ((i, m) in order.withIndex()) {
-            mixer.play(m.create(sr, 100L + i, m.bpmDefault.toFloat(), m.intensityDefault))
+            mixer.play(m.create(sr, 100L + i, m.bpmDefault.toFloat(), m.intensityDefault, TestSamples))
             // schnelles Hin- und Herschalten mitten in der Überblendung
-            if (i == 2) mixer.play(Style.FOCUS.create(sr, 5L, 82f, 0.5f))
-            if (i == 2) mixer.play(m.create(sr, 6L, m.bpmDefault.toFloat(), m.intensityDefault))
+            if (i == 2) mixer.play(Style.FOCUS.create(sr, 5L, 82f, 0.5f, TestSamples))
+            if (i == 2) mixer.play(m.create(sr, 6L, m.bpmDefault.toFloat(), m.intensityDefault, TestSamples))
             var n = 0
             while (n < perMood) {
                 val k = minOf(1024, perMood - n)
@@ -115,7 +115,7 @@ class SongRenderTest {
         // 15 Minuten je Stimmung: mehrere Teile, Tonartwechsel, alle Abschnitte
         for (mood in Style.entries) {
             val mixer = MusicMixer(sr)
-            val song = mood.create(sr, 31337L, mood.bpmMax.toFloat(), 1f)
+            val song = mood.create(sr, 31337L, mood.bpmMax.toFloat(), 1f, TestSamples)
             mixer.play(song)
             mixer.setMasterImmediate(1f)
             val chunk = FloatArray(1024 * 2)

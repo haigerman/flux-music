@@ -2,18 +2,19 @@
 
 # Organic Music
 
-Android-App, die **live Musik komponiert** – passend zu Stimmung und Zweck. Nichts ist
-aufgenommen: Tonart, Akkordfolgen, Rhythmen, Melodien und der Aufbau der Stücke entstehen
-in Echtzeit auf dem Handy. Die Musik läuft endlos und wiederholt sich nie exakt.
+Android-App, die **live Musik komponiert** – passend zu Stimmung und Zweck. Tonart,
+Akkordfolgen, Rhythmen, Melodien und der Aufbau der Stücke entstehen in Echtzeit auf dem
+Handy; gespielt wird mit **Aufnahmen echter Instrumente** (Konzertflügel, Streicher,
+Schlagzeug, Bass, Gitarre …). Die Musik läuft endlos und wiederholt sich nie exakt.
 
 | Stimmung | Klang | Tempo |
 |---|---|---|
-| 🔥 **Sport · Bass & Groove** | Treibende elektronische Beats: gerade Bassdrum, pumpende Flächen, rollender Bass, Arpeggios; Spannungsbögen mit Snare-Wirbel, Rauschen und „Drop“ | 110–175 BPM |
-| 🤘 **Sport · Rock** | Geradliniger Hardrock im Stil der großen Pub-Rock-Bands: zwei knackig verzerrte Gitarren (links/rechts) mit Powerchords und Pausen zwischen den Akkorden, Achtel-Bass, Rock-Beat mit Fills, Blues-Solo mit Bendings; Strophe → Refrain → Solo | 100–170 BPM |
-| 🎧 **Fokus** | Lo-Fi-Hip-Hop zum Arbeiten & Lernen: gedämpfte Drums mit Swing, warmes E-Piano mit Jazz-Akkorden, weicher Bass, Vinyl-Knistern; bewusst gleichmäßig | 65–100 BPM |
-| 🎨 **Kreativ** | Leichter, positiver Deep-House-Groove: Piano-Stabs, Conga & Shaker, funky Bass, Mallet-Arpeggios, sonnige Melodie | 96–124 BPM |
-| 🌿 **Entspannen** | Ambient ohne Schlagzeug: atmende Klangflächen, frei improvisierendes gedämpftes Klavier, Glocken, leises Meeresrauschen | 50–80 BPM |
-| 🌙 **Einschlafen** | Noch langsamer, tiefer und dunkler; tragender Grundton, Meeresrauschen, kaum Melodie | 40–60 BPM |
+| 🔥 **Sport · Bass & Groove** | Treibende elektronische Beats: Supersaw-Flächen, die mit der Bassdrum pumpen, rollender Bass, Arpeggios; echte Hi-Hats, Becken, Handclaps und Snare-Wirbel; Steigerung → „Drop“ | 110–175 BPM |
+| 🤘 **Sport · Rock** | Geradliniger Hardrock im Stil der großen Pub-Rock-Bands: Studio-Schlagzeug, E-Bass in Achteln, zwei echte Gitarren links/rechts über Röhrenverstärker mit Powerchords und Pausen zwischen den Akkorden, Fills, Blues-Solo mit Bendings; Strophe → Refrain → Solo | 100–170 BPM |
+| 🎧 **Fokus** | Lo-Fi-Hip-Hop zum Arbeiten & Lernen: Schlagzeug übers Lo-Fi-Mikrofon mit Swing, Wurlitzer-E-Piano mit Jazz-Akkorden, gezupfter Kontrabass, Glockenspiel oder Flöte, Vinyl-Knistern und leichtes Band-Leiern; bewusst gleichmäßig | 65–100 BPM |
+| 🎨 **Kreativ** | „Organic House“: Congas, Bongos, Shaker, Handclaps, Flügel-Akkorde, E-Bass, Marimba-Arpeggios, Flötenmelodie, Streicher | 96–124 BPM |
+| 🌿 **Entspannen** | Kammermusik ohne Schlagzeug: Konzertflügel wie von einem Pianisten gespielt (mit Pedal und Rubato), Streicherensemble, Kontrabass, Harfe, Glockenspiel, leises Meeresrauschen | 50–80 BPM |
+| 🌙 **Einschlafen** | Noch langsamer, tiefer und dunkler: Flügel, Celli und Bratschen, Kontrabass, Harfe, Meeresrauschen | 40–60 BPM |
 
 ## Funktionen
 
@@ -51,13 +52,25 @@ einen eigenen „Komponisten“, der festlegt, welche Instrumente wann was spiel
   Bausteinen zusammengesetzt (klingen lassen, kurz anschlagen, abdämpfen, Pause),
   gelegentlich ein Blues-Lauf auf der tiefen Saite. Ein Riff wird – wie im echten Rock –
   wiederholt, bis der nächste Songteil kommt. Nachgespielt wird nichts.
-- **Klang:** alle Instrumente sind Synthesizer – Bassdrum, Snare, Clap, Hi-Hats, Shaker,
-  Toms und Conga aus Oszillatoren und Rauschen; Pads, Bässe und Leads subtraktiv; E-Piano,
-  Klavier, Vibraphon und Glocken per FM-Synthese; E-Gitarren als physikalisch modellierte
-  Saiten (Karplus-Strong) mit Röhren-Verzerrer und Lautsprecherbox. Dazu Hall,
-  Ping-Pong-Echo und Sidechain-„Pumpen“.
+- **Spielweise:** Instrumente werden wie von Musikern gespielt – Klavier mit Pedal,
+  Melodiebögen mit Crescendo/Decrescendo und leichtem Rubato, Akkorde leicht gebrochen
+  angeschlagen, Streicher, die beim Akkordwechsel ineinander übergehen, Gitarren, deren
+  Saiten beim neuen Anschlag verstummen, Schlagzeug minimal hinter dem Beat.
+- **Klang:** echte Aufnahmen aus freien Sample-Bibliotheken (siehe [CREDITS.md](CREDITS.md)):
+  mehrere Anschlagstärken je Ton und mehrere Varianten pro Schlag, damit sich nichts
+  maschinell wiederholt. Ein eigener Sampler spielt sie tonhöhengenau (kubische
+  Interpolation, nahtlose Loops für gehaltene Töne). Die Gitarren laufen durch eine
+  Verstärker-Simulation (Röhren-Sättigung mit 2-fach-Überabtastung, Klangregelung,
+  4×12-Box), die elektronischen Stile nutzen Synthesizer (Supersaw mit 7 Stimmen).
+- **Mischung:** wie im Studio – EQ und Kompressor je Instrument, Gruppen-Busse
+  (z. B. Schlagzeug-Bus mit Parallel-Kompression), Sidechain-„Pumpen“, ein dichter
+  FDN-Hall mit frühen Reflexionen, Echo, Summenkompressor, Bandsättigung und ein
+  Peak-Limiter.
 
-Die APK bleibt dadurch klein (ca. 1 MB).
+Die APK ist ca. 36 MB groß (davon 33 MB Instrumente). Beim ersten Abspielen eines Stils
+werden dessen Instrumente einmalig dekodiert und im App-Cache abgelegt (je nach Stil
+50–260 MB, für alle Stile zusammen ca. 370 MB); danach starten sie sofort. Der Cache kann
+jederzeit in den Android-Einstellungen geleert werden.
 
 ## Aufbau
 
@@ -74,7 +87,14 @@ Die APK bleibt dadurch klein (ca. 1 MB).
 | `audio/songs/SportSong.kt`, `RockSong.kt` … `AmbientSong.kt` | Die Komponisten je Stimmung/Variante |
 | `audio/music/Theory.kt` | Tonarten, Akkorde, Stimmführung |
 | `audio/music/Patterns.kt` | Melodie- und Arpeggio-Generator |
-| `audio/instruments/` | Schlagzeug, Synthesizer, E-Gitarre, Texturen |
+| `audio/instruments/Sampler.kt` | Spielt echte Instrumentenaufnahmen (Anschlagstärken, Varianten, Loops, Bendings) |
+| `audio/instruments/GuitarRig.kt` | Gitarrenverstärker-Simulation |
+| `audio/instruments/` (übrige) | Synthesizer, elektronische Bassdrum, Riser, Texturen |
+| `audio/AssetSampleLoader.kt` | Lädt die Instrumente aus den Assets (MediaCodec → Cache → mmap) |
+| `audio/samples/SampleData.kt` | Format der Instrumente |
+| `audio/dsp/Production.kt` | EQ, Kompressor, FDN-Hall, Bandsättigung |
+| `assets/instruments/<id>/` | Die Instrumente: `samples.ogg` + `inst.txt` |
+| `tools/build_instruments.py` | Baut die Instrumente aus den SFZ-Bibliotheken |
 | `audio/dsp/Dsp.kt` | Filter, Hüllkurven, Hall, Echo, Oszillatoren |
 
 ## Lokal bauen
@@ -87,10 +107,27 @@ Voraussetzungen: JDK 17+ und das Android SDK (Platform 36).
 
 Die APK liegt danach unter `app/build/outputs/apk/debug/app-debug.apk`.
 
+Für die Tests muss `ffmpeg` installiert sein (dekodiert die Instrumente).
 `./gradlew :app:testDebugUnitTest` rendert außerdem jede Stimmung/Variante als WAV nach
 `app/build/sound-previews/` – praktisch zum Probehören ohne Handy. Die Länge lässt sich
 einstellen (`-PpreviewSeconds=180`). Die Tests prüfen auch Übersteuerung, Knackser beim
-Wechsel und einen 15-Minuten-Dauerlauf je Stimmung.
+Wechsel, einen 15-Minuten-Dauerlauf je Stimmung, die Tonhöhe aller Instrumente über
+ihren ganzen Umfang und die Loops. Zusätzlich entsteht `instrumente.wav`, in der jedes
+Instrument einzeln zu hören ist.
+
+### Instrumente neu bauen
+
+Die fertigen Instrumente liegen im Repository; neu bauen muss man sie nur, wenn man etwas
+an der Auswahl ändert. Dafür braucht es Python 3 mit numpy und ffmpeg:
+
+```bash
+python3 tools/build_instruments.py            # alle
+python3 tools/build_instruments.py piano drums # einzelne
+```
+
+Das Skript lädt die benötigten Aufnahmen von GitHub (bzw. nutzt lokale Klone unter
+`~/samplesrc/`), mischt die Schlagzeug-Mikrofone, kürzt, erzeugt Loops, misst die
+Tonhöhe jedes Samples nach und schreibt `assets/instruments/<id>/`.
 
 ## Release (Installation über Obtainium)
 

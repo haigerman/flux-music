@@ -1,88 +1,66 @@
 package io.github.haigerman.organicmusic.audio.songs
 
-import io.github.haigerman.organicmusic.audio.dsp.Reverb
-import io.github.haigerman.organicmusic.audio.instruments.Bass
-import io.github.haigerman.organicmusic.audio.instruments.BassPreset
-import io.github.haigerman.organicmusic.audio.instruments.FmPreset
-import io.github.haigerman.organicmusic.audio.instruments.FmSynth
-import io.github.haigerman.organicmusic.audio.instruments.HiHat
-import io.github.haigerman.organicmusic.audio.instruments.Kick
-import io.github.haigerman.organicmusic.audio.instruments.PolySynth
-import io.github.haigerman.organicmusic.audio.instruments.Shaker
-import io.github.haigerman.organicmusic.audio.instruments.Snare
-import io.github.haigerman.organicmusic.audio.instruments.SynthPreset
+import io.github.haigerman.organicmusic.audio.dsp.Compressor
+import io.github.haigerman.organicmusic.audio.dsp.Drift
+import io.github.haigerman.organicmusic.audio.dsp.Eq
+import io.github.haigerman.organicmusic.audio.dsp.FdnReverb
+import io.github.haigerman.organicmusic.audio.instruments.Sampler
 import io.github.haigerman.organicmusic.audio.instruments.Vinyl
-import io.github.haigerman.organicmusic.audio.instruments.Wave
 import io.github.haigerman.organicmusic.audio.music.Key
 import io.github.haigerman.organicmusic.audio.music.Scale
+import io.github.haigerman.organicmusic.audio.samples.SampleBank
 
 /**
- * Fokus: entspannter Lo-Fi-Hip-Hop. Gedämpfte Drums mit Swing, warmes E-Piano mit
- * Jazz-Akkorden (Septimen/Nonen), weicher Bass, leises Vinyl-Knistern. Bewusst gleichmäßig
- * und ohne Überraschungen – die Musik soll tragen, nicht ablenken. Melodien sind sparsam
- * und lassen viel Raum.
+ * Fokus: entspannter Lo-Fi-Hip-Hop mit echten Instrumenten. Ein Schlagzeug, aufgenommen
+ * über ein Lo-Fi-Mikrofon, spielt mit Swing leicht hinter dem Beat; ein Wurlitzer-E-Piano
+ * spielt Jazz-Akkorde, ein gezupfter Kontrabass den Grundton. Sparsame Melodien von
+ * Glockenspiel oder Flöte, darunter leise Bratschen, Vinyl-Knistern und das sanfte Leiern
+ * einer Bandmaschine. Bewusst gleichmäßig – die Musik soll tragen, nicht ablenken.
  */
-class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, seed, bpm, intensity) {
+class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBank) : Song(sr, seed, bpm, intensity) {
 
-    override val reverb = Reverb(sr, roomSize = 0.8f, damping = 0.5f, inputGain = 0.012f)
+    override val reverb = FdnReverb(sr, decaySeconds = 1.6f, dampHz = 4500f, predelayMs = 12f, size = 0.8f, early = 0.4f)
+
     // ohne Schlagzeug (geringe Intensität) etwas lauter, damit es nicht "wegsackt"
-    override val outputGain: Float get() = 1.9f * (1f + 1.2f * maxOf(0f, 0.5f - intensity))
+    override val outputGain: Float get() = 1.0f * (1f + 0.8f * maxOf(0f, 0.5f - intensity))
 
-    private val kick = Kick(sr, rng).apply {
-        startHz = 120f; endHz = 55f; pitchDecay = 0.03f; decay = 0.28f; drive = 1.5f; click = 0.1f; tone = 3200f
+    private val kit = bank["drums_lofi"]
+    private val kick = Sampler(sr, rng, kit, 4)
+    private val snare = Sampler(sr, rng, kit, 6)
+    private val hats = Sampler(sr, rng, kit, 6).apply {
+        chokeGroups[42] = 1; chokeGroups[44] = 1; chokeGroups[46] = 1
+        pan = 0.15f
     }
-    private val snare = Snare(sr, rng).apply {
-        toneHz = 190f; toneMix = 0.35f; noiseDecay = 0.19f; toneDecay = 0.07f; brightness = 3800f
+    private val wurli = Sampler(sr, rng, bank["wurli"], 24).apply {
+        release = 0.6f; retrigger = 0.15f; spread = 0.25f; toneHz = 6500f
     }
-    private val hat = HiHat(sr, rng).apply { closedDecay = 0.035f; brightness = 0.5f; pan = 0.2f }
-    private val shaker = Shaker(sr, rng).apply { decay = 0.06f; pan = -0.25f }
-    private val bass = Bass(
-        sr,
-        BassPreset(
-            saw = 0.4f, sine = 0.55f, cutoff = 650f, envAmount = 1.5f, fDecay = 0.2f, resonance = 0.8f,
-            attack = 0.006f, decay = 0.5f, sustain = 0.5f, release = 0.12f, glide = 0.03f, drive = 1.15f,
-        ),
-    )
-    private val keys = FmSynth(
-        sr, rng, 10,
-        FmPreset(
-            ratio = 1f, index = 1.8f, indexDecay = 0.5f, sustainIndex = 0.2f, decay = 3f, release = 0.45f,
-            tine = 0.1f, tineDecay = 0.06f, tremoloDepth = 0.12f, tremoloRate = 4f, detuneCents = 4f,
-            spread = 0.4f, gain = 0.55f,
-        ),
-    )
-    private val melodyPresets = listOf(
-        // Vibraphon
-        FmPreset(
-            ratio = 4f, index = 0.9f, indexDecay = 0.25f, sustainIndex = 0.05f, decay = 2.2f, release = 0.5f,
-            tine = 0f, tremoloDepth = 0.25f, tremoloRate = 5.5f, detuneCents = 2f, spread = 0.2f, gain = 0.6f,
-        ),
-        // weiches Glockenspiel
-        FmPreset(
-            ratio = 3.01f, index = 1.1f, indexDecay = 0.4f, sustainIndex = 0.1f, decay = 1.8f, release = 0.4f,
-            tine = 0f, tremoloDepth = 0.05f, detuneCents = 1.5f, spread = 0.25f, gain = 0.5f,
-        ),
-    )
-    private val melody = FmSynth(sr, rng, 4, melodyPresets[0])
-    private val pad = PolySynth(
-        sr, rng, 6,
-        SynthPreset(
-            wave = Wave.SAW, oscs = 2, detuneCents = 10f, cutoff = 650f, resonance = 0.6f, envAmount = 0.2f,
-            fDecay = 2f, fSustain = 0.8f, attack = 1.5f, decay = 2f, sustain = 0.9f, release = 2f,
-            keyTrack = 0.2f, spread = 0.7f, wobble = 0.3f, wobbleRate = 0.1f, gain = 0.5f,
-        ),
-    )
+    private val upright = Sampler(sr, rng, bank["upright"], 4).apply { release = 0.35f; retrigger = 0.08f }
+    private val glock = Sampler(sr, rng, bank["glock"], 6).apply { release = 1.5f; pan = 0.2f; toneHz = 7000f }
+    private val flute = Sampler(sr, rng, bank["flute"], 3).apply { attack = 0.06f; release = 0.5f; pan = -0.15f; toneHz = 7000f }
+    private val violas = Sampler(sr, rng, bank["violas"], 8).apply { attack = 1.5f; release = 2.5f; toneHz = 3500f }
     private val vinyl = Vinyl(sr, rng)
 
-    private val chKick = channel(kick, 0.5f, fade = 0.05f)
-    private val chSnare = channel(snare, 0.33f, reverb = 0.15f, fade = 0.05f)
-    private val chHat = channel(hat, 0.11f, fade = 0.3f)
-    private val chShaker = channel(shaker, 0.09f, fade = 0.5f)
-    private val chBass = channel(bass, 0.36f, duck = 0.2f, fade = 0.3f)
-    private val chKeys = channel(keys, 0.42f, reverb = 0.3f, duck = 0.12f, fade = 2f)
-    private val chMelody = channel(melody, 0.24f, reverb = 0.35f, delay = 0.25f, fade = 2f)
-    private val chPad = channel(pad, 0.18f, reverb = 0.5f, fade = 4f)
-    private val chVinyl = channel(vinyl, 0.55f, fade = 3f)
+    private val drumBus = bus(
+        gain = 1f,
+        eq = Eq(sr).highpass(40f).lowShelf(110f, 2f).highShelf(8000f, -3f),
+        comp = Compressor(sr, thresholdDb = -20f, ratio = 3f, attackMs = 15f, releaseMs = 140f, makeupDb = 3f),
+        saturation = 0.2f,
+    )
+    private val chKick = channel(kick, 0.9f, fade = 0.05f, bus = drumBus)
+    private val chSnare = channel(snare, 0.7f, reverb = 0.12f, fade = 0.05f, bus = drumBus)
+    private val chHats = channel(hats, 0.45f, fade = 0.3f, bus = drumBus)
+    private val chKeys = channel(
+        wurli, 0.75f, reverb = 0.22f, duck = 0.1f, fade = 2f,
+        eq = Eq(sr).highpass(90f).peak(300f, 0.9f, -2f).peak(1800f, 1f, 1.5f),
+        comp = Compressor(sr, thresholdDb = -18f, ratio = 2.5f, attackMs = 12f, releaseMs = 160f, makeupDb = 2f),
+    )
+    private val chBass = channel(upright, 0.85f, reverb = 0.05f, duck = 0.15f, fade = 0.4f,
+        eq = Eq(sr).highpass(35f).lowShelf(100f, 2f).peak(700f, 1f, 1.5f),
+        comp = Compressor(sr, thresholdDb = -20f, ratio = 3f, attackMs = 8f, releaseMs = 120f, makeupDb = 2f))
+    private val chGlock = channel(glock, 0.3f, reverb = 0.35f, delay = 0.25f, fade = 2f)
+    private val chFlute = channel(flute, 0.4f, reverb = 0.35f, delay = 0.2f, fade = 2f, eq = Eq(sr).highpass(250f))
+    private val chPad = channel(violas, 0.32f, reverb = 0.5f, fade = 4f, eq = Eq(sr).highpass(120f))
+    private val chVinyl = channel(vinyl, 0.45f, fade = 3f)
 
     private val majorProgressions = listOf(
         intArrayOf(1, 4, 0, 5),   // ii–V–I–vi
@@ -120,18 +98,24 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, se
     private var kickPattern = kickPatterns[0]
     private var comp = compPatterns[0]
     private var ghostSnare = false
+    private var crossstick = false
     private var hat16 = 0.1f
     private var bassStyle = 0
+    private var useFlute = false
     private var voicing: IntArray? = null
     private var padVoicing: IntArray? = null
     private var pieces = 0
+    private val wow = Drift(sr, rng, 1.2f, 3.5f, -1f, 1f)
 
     init {
         delayBeats = 0.75f
         delay.feedback = 0.35f
         delay.setDamping(2500f)
         duckRelease = 0.18f
-        toneCutoff = 7000f
+        toneCutoff = 9500f
+        masterEq = Eq(sr).highpass(30f).lowShelf(180f, 1f).highShelf(9000f, -2f)
+        masterComp = Compressor(sr, thresholdDb = -16f, ratio = 2f, attackMs = 25f, releaseMs = 250f, kneeDb = 8f, makeupDb = 1.5f)
+        masterSaturation = 0.18f
         chVinyl.target = 1f
     }
 
@@ -146,10 +130,12 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, se
         kickPattern = rng.pick(kickPatterns)
         comp = rng.pick(compPatterns)
         ghostSnare = rng.chance(0.5f)
-        hat16 = rng.range(0.05f, 0.25f)
+        crossstick = rng.chance(0.3f)
+        hat16 = rng.range(0.05f, 0.22f)
         bassStyle = rng.int(3)
-        melody.preset = rng.pick(melodyPresets)
-        buildHooks(low = 67, high = 84, notesPerHalf = rng.int(3, 5), syncopation = 0.45f, pentatonic = true, maxLength = 6, velocity = 0.7f)
+        useFlute = rng.chance(0.45f)
+        buildHooks(low = if (useFlute) 72 else 74, high = if (useFlute) 86 else 91, notesPerHalf = rng.int(3, 5), syncopation = 0.45f,
+            pentatonic = true, maxLength = 6, velocity = 0.65f)
         pieces++
     }
 
@@ -165,13 +151,18 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, se
 
     override fun onBar() {
         val c = chord
+        // Band-Leiern: sehr langsam, wenige Cent
+        val w = wow.advance(stepsToSamples(16f)) * 7f
+        wurli.pitchModCents = w
+        glock.pitchModCents = w
+        flute.pitchModCents = w * 0.6f
         if (pieceBar % chordBars == 0) {
             voicing = c.voicing(55, 74, voicing, skipRootIfLarge = true)
             if (chPad.on) {
                 val pv = c.voicing(52, 67, padVoicing)
                 padVoicing = pv
-                val len = stepsToSamples(chordBars * 16f - 1f)
-                for (n in pv) pad.noteOn(n, 0.6f, len)
+                val len = stepsToSamples(chordBars * 16f + 1f)
+                for ((i, n) in pv.withIndex()) violas.noteOn(n, 0.45f, len, ms(80f * i))
             }
         }
     }
@@ -184,54 +175,63 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, se
         if (chKeys.on) {
             for ((start, len) in comp) {
                 if (start != s) continue
-                val vel = rng.range(0.5f, 0.72f) * if (s == 0) 1f else 0.85f
+                val vel = rng.range(0.38f, 0.58f) * if (s == 0) 1f else 0.85f
                 val up = rng.chance(0.7f)
-                val strum = rng.range(8f, 22f)
+                val strum = rng.range(10f, 26f)
                 for (i in v.indices) {
                     val order = if (up) i else v.size - 1 - i
-                    keys.noteOn(v[i], vel * rng.range(0.9f, 1.05f), stepsToSamples(len - 0.4f), ms(strum * order) + human(6f))
+                    wurli.noteOn(v[i], vel * rng.range(0.9f, 1.06f), stepsToSamples(len - 0.4f), ms(strum * order) + human(8f))
                 }
             }
         }
 
-        // Bassdrum & Snare
+        // Bassdrum & Snare (leicht hinter dem Beat)
         if (chKick.on && s in kickPattern) {
-            kick.trigger(if (s == 0) 0.95f else 0.75f, human(8f))
+            kick.noteOn(36, if (s == 0) rng.range(0.75f, 0.85f) else rng.range(0.55f, 0.7f), -1, human(8f))
             if (s == 0) pump()
         }
         if (chSnare.on) {
-            if (s == 4 || s == 12) snare.trigger(0.8f * rng.range(0.9f, 1.05f), ms(12f) + human(10f)) // etwas "hinter dem Beat"
-            else if (ghostSnare && (s == 7 || s == 15) && rng.chance(0.35f)) snare.trigger(0.18f, human(8f))
+            if (s == 4 || s == 12) {
+                val k = if (crossstick && part == Part.GROOVE) 37 else 38
+                snare.noteOn(k, rng.range(0.6f, 0.75f), -1, ms(14f) + human(10f))
+            } else if (ghostSnare && (s == 7 || s == 15) && rng.chance(0.35f)) {
+                snare.noteOn(38, rng.range(0.12f, 0.2f), -1, human(8f))
+            }
         }
 
-        // Hi-Hats & Shaker
-        if (chHat.on) {
-            if (s % 2 == 0) hat.trigger((if (s % 4 == 0) 0.75f else 0.55f) * rng.range(0.8f, 1.05f), open = false, delay = human(10f))
-            else if (rng.chance(hat16)) hat.trigger(0.3f, open = false, delay = human(6f))
-            if (s == 14 && pieceBar % 4 == 3 && rng.chance(0.5f)) hat.trigger(0.5f, open = true)
+        // Hi-Hats
+        if (chHats.on) {
+            if (s % 2 == 0) hats.noteOn(42, (if (s % 4 == 0) 0.55f else 0.38f) * rng.range(0.85f, 1.1f), -1, human(10f))
+            else if (rng.chance(hat16)) hats.noteOn(42, rng.range(0.2f, 0.3f), -1, human(6f))
+            if (s == 14 && pieceBar % 4 == 3 && rng.chance(0.5f)) hats.noteOn(46, 0.4f, -1, human(6f))
         }
-        if (chShaker.on && s % 2 == 1) shaker.trigger(rng.range(0.4f, 0.7f), human(8f))
 
-        // Bass
+        // Kontrabass
         if (chBass.on && part != Part.INTRO) {
             val c = chord
-            val root = c.rootAtOrAbove(36)
+            val root = c.rootAtOrAbove(31)
             val fifth = root + 7
             when (s) {
-                0 -> bass.noteOn(root, 0.9f, stepsToSamples(if (bassStyle == 0) 9f else 6f), human(5f))
-                10 -> if (bassStyle >= 1) bass.noteOn(if (rng.chance(0.6f)) root else fifth, 0.7f, stepsToSamples(3.5f), human(5f))
-                7 -> if (bassStyle == 2 && rng.chance(0.5f)) bass.noteOn(root + 12, 0.55f, stepsToSamples(2f), human(5f))
+                0 -> upright.noteOn(root, rng.range(0.7f, 0.85f), stepsToSamples(if (bassStyle == 0) 9f else 6f), human(6f))
+                10 -> if (bassStyle >= 1) upright.noteOn(if (rng.chance(0.6f)) root else fifth, rng.range(0.55f, 0.7f), stepsToSamples(3.5f), human(6f))
+                7 -> if (bassStyle == 2 && rng.chance(0.5f)) upright.noteOn(root + 12, 0.5f, stepsToSamples(2f), human(6f))
                 14 -> if (chordChangesNextBar && rng.chance(0.55f)) {
                     // chromatische Annäherung an den nächsten Grundton
-                    val next = chordAt(pieceBar + 1).rootAtOrAbove(36)
-                    bass.noteOn(next + if (rng.chance(0.5f)) -1 else 1, 0.6f, stepsToSamples(1.6f), human(5f), glide = true)
+                    val next = chordAt(pieceBar + 1).rootAtOrAbove(31)
+                    upright.noteOn(next + if (rng.chance(0.5f)) -1 else 1, 0.55f, stepsToSamples(1.6f), human(6f))
                 }
             }
         }
 
         // Melodie: nur im Thema, und jede zweite Phrase bleibt frei
-        if (chMelody.on && part == Part.THEME && (barInSection / 4) % 2 == 0) {
-            hookNote(s)?.let { melody.noteOn(it.midi, it.vel, stepsToSamples(it.length.toFloat()), human(12f)) }
+        if (part == Part.THEME && (barInSection / 4) % 2 == 0) {
+            hookNote(s)?.let {
+                if (useFlute && chFlute.on) {
+                    flute.noteOn(it.midi - 2 * 0, it.vel * 0.85f, stepsToSamples(it.length - 0.3f), human(14f))
+                } else if (!useFlute && chGlock.on) {
+                    glock.noteOn(it.midi, it.vel * 0.8f, -1, human(12f))
+                }
+            }
         }
     }
 
@@ -243,11 +243,12 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float) : Song(sr, se
         }
         chKick.target = drumsOn * above(0.15f)
         chSnare.target = drumsOn * above(0.22f)
-        chHat.target = (if (part == Part.INTRO) 0.6f else 1f) * above(0.3f)
-        chShaker.target = drumsOn * above(0.7f)
-        chBass.target = if (part == Part.INTRO) 0f else above(0.08f) * (if (part == Part.BREAK) 0.7f else 1f)
+        chHats.target = (if (part == Part.INTRO) 0.6f else 1f) * above(0.3f)
+        chBass.target = if (part == Part.INTRO) 0f else above(0.08f) * (if (part == Part.BREAK) 0.75f else 1f)
         chKeys.target = 1f
-        chMelody.target = if (part == Part.THEME) above(0.45f) else 0f
-        chPad.target = (0.35f + 0.65f * (1f - above(0.5f, 0.4f)) + if (part == Part.BREAK) 0.3f else 0f).coerceAtMost(1f)
+        val mel = if (part == Part.THEME) above(0.45f) else 0f
+        chGlock.target = mel
+        chFlute.target = mel
+        chPad.target = (0.3f + 0.6f * (1f - above(0.5f, 0.4f)) + if (part == Part.BREAK) 0.3f else 0f).coerceAtMost(1f)
     }
 }

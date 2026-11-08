@@ -16,8 +16,10 @@ enum class Wave { SAW, SQUARE, TRIANGLE, SINE }
 /** Klangeinstellung für den [PolySynth] (subtraktive Synthese). */
 data class SynthPreset(
     val wave: Wave = Wave.SAW,
-    /** Anzahl leicht verstimmter Oszillatoren pro Stimme (1–3). */
+    /** Anzahl leicht verstimmter Oszillatoren pro Stimme (1–7, "Unisono"/Supersaw). */
     val oscs: Int = 2,
+    /** Verteilung der Unisono-Oszillatoren im Stereobild (0 = mono, 1 = ganz breit). */
+    val unisonWidth: Float = 0f,
     val detuneCents: Float = 9f,
     /** Sinus eine Oktave tiefer. */
     val sub: Float = 0f,
@@ -56,7 +58,7 @@ class PolySynth(sr: Int, private val rng: Rng, voices: Int, var preset: SynthPre
     private var wobblePhase = rng.float()
 
     private inner class Voice {
-        val ph = FloatArray(3) { rng.float() }
+        val ph = FloatArray(7) { rng.float() }
         var subPh = 0f
         var freq = 440f
         var vel = 1f
@@ -72,6 +74,7 @@ class PolySynth(sr: Int, private val rng: Rng, voices: Int, var preset: SynthPre
         val amp = Adsr(sr)
         val fenv = Adsr(sr)
         val svf = Svf(sr)
+        val svfR = Svf(sr)
         var counter = 0
         val busy: Boolean get() = amp.active || wait >= 0
 
@@ -117,14 +120,20 @@ class PolySynth(sr: Int, private val rng: Rng, voices: Int, var preset: SynthPre
 
     override fun render(l: FloatArray, r: FloatArray, n: Int) {
         val p = preset
-        val oscs = p.oscs.coerceIn(1, 3)
-        val det = FloatArray(3)
-        when (oscs) {
-            1 -> det[0] = 1f
-            2 -> { det[0] = cents(-p.detuneCents * 0.5f); det[1] = cents(p.detuneCents * 0.5f) }
-            else -> { det[0] = cents(-p.detuneCents); det[1] = 1f; det[2] = cents(p.detuneCents * 1.1f) }
+        val oscs = p.oscs.coerceIn(1, 7)
+        val det = FloatArray(oscs)
+        val oL = FloatArray(oscs)
+        val oR = FloatArray(oscs)
+        for (o in 0 until oscs) {
+            val x = if (oscs == 1) 0f else -1f + 2f * o / (oscs - 1)
+            // Supersaw-artige Verteilung: außen etwas stärker verstimmt
+            det[o] = cents(x * p.detuneCents * (0.8f + 0.2f * kotlin.math.abs(x)))
+            val pan = x * p.unisonWidth
+            oL[o] = panL(pan) * 1.41f
+            oR[o] = panR(pan) * 1.41f
         }
-        val oscGain = 1f / oscs
+        val stereo = p.unisonWidth > 0f && oscs > 1
+        val oscGain = 1f / kotlin.math.sqrt(oscs.toFloat()) / (if (oscs > 2) 1.2f else 1f)
         val lfoInc = p.vibratoRate / sr
         val wobbleInc = p.wobbleRate / sr
         clock += n
@@ -153,30 +162,47 @@ class PolySynth(sr: Int, private val rng: Rng, voices: Int, var preset: SynthPre
                     val wob = if (p.wobble > 0f) 1f + p.wobble * Sine.at(wobblePhase + i * wobbleInc) else 1f
                     val fc = p.cutoff * track * cutoffMul * wob * (1f + p.envAmount * fe * (0.5f + 0.5f * v.vel))
                     v.svf.set(fc, p.resonance)
+                    if (stereo) v.svfR.set(fc, p.resonance)
                 }
                 v.counter = (v.counter + 1) and 15
                 var s = 0f
+                var sR = 0f
                 for (o in 0 until oscs) {
                     val dt = v.freq * det[o] * vib / sr
                     var ph = v.ph[o] + dt
                     if (ph >= 1f) ph -= 1f
                     v.ph[o] = ph
-                    s += when (p.wave) {
+                    val w = when (p.wave) {
                         Wave.SAW -> sawBlep(ph, dt)
                         Wave.SQUARE -> squareBlep(ph, dt)
                         Wave.TRIANGLE -> triangle(ph)
                         Wave.SINE -> Sine.at(ph)
                     }
+                    if (stereo) {
+                        s += w * oL[o]
+                        sR += w * oR[o]
+                    } else {
+                        s += w
+                    }
                 }
                 s *= oscGain
+                sR *= oscGain
                 if (p.sub > 0f) {
                     v.subPh += v.freq * 0.5f / sr
                     if (v.subPh >= 1f) v.subPh -= 1f
-                    s += Sine.at(v.subPh) * p.sub
+                    val sub = Sine.at(v.subPh) * p.sub
+                    s += sub
+                    sR += sub
                 }
-                val out = v.svf.lp(s) * a * v.vel * p.gain
-                l[i] += out * v.gl
-                r[i] += out * v.gr
+                val k = a * v.vel * p.gain
+                if (stereo) {
+                    l[i] += v.svf.lp(s) * k * v.gl * 1.41f
+                    r[i] += v.svfR.lp(sR) * k * v.gr * 1.41f
+                } else {
+                    val out = v.svf.lp(s) * k
+                    l[i] += out * v.gl
+                    r[i] += out * v.gr
+                }
             }
         }
         lfoPhase = (lfoPhase + n * lfoInc) % 1f
@@ -184,145 +210,6 @@ class PolySynth(sr: Int, private val rng: Rng, voices: Int, var preset: SynthPre
     }
 
     private fun cents(c: Float): Float = 2f.pow(c / 1200f)
-}
-
-/** Klangeinstellung für den [FmSynth] (E-Piano, Glocken, Mallets, gedämpftes Klavier). */
-data class FmPreset(
-    val ratio: Float = 1f,
-    val index: Float = 1.6f,
-    /** Abklingzeit des Modulationsindex (Klang wird weicher). */
-    val indexDecay: Float = 0.6f,
-    val sustainIndex: Float = 0.25f,
-    val decay: Float = 2.5f,
-    val release: Float = 0.35f,
-    val attack: Float = 0.002f,
-    /** Heller "Tine"-Anteil beim Anschlag (E-Piano-Glöckchen). */
-    val tine: Float = 0.12f,
-    val tineRatio: Float = 14f,
-    val tineDecay: Float = 0.08f,
-    val tremoloDepth: Float = 0.1f,
-    val tremoloRate: Float = 4.5f,
-    /** Zweiter, minimal verstimmter Träger für Schwebung. */
-    val detuneCents: Float = 3f,
-    val spread: Float = 0.35f,
-    val gain: Float = 1f,
-)
-
-/** Mehrstimmiger 2-Operator-FM-Synthesizer. */
-class FmSynth(sr: Int, private val rng: Rng, voices: Int, var preset: FmPreset) : Instrument(sr) {
-    private var tremPhase = 0f
-    private var trem = FloatArray(512)
-
-    private inner class Voice {
-        var cp = 0f
-        var cp2 = 0f
-        var mp = 0f
-        var tp = 0f
-        var freq = 0f
-        var vel = 0f
-        var amp = 0f
-        var idx = 0f
-        var tineEnv = 0f
-        var aCoef = 0f
-        var iCoef = 0f
-        var tCoef = 0f
-        var rCoef = 0f
-        var attack = 1f
-        var attackInc = 1f
-        var gate = 0
-        var releasing = false
-        var active = false
-        var wait = -1
-        var pMidi = 0
-        var pVel = 0f
-        var pLen = 0
-        var gl = 0.7f
-        var gr = 0.7f
-        val busy: Boolean get() = active || wait >= 0
-
-        fun start() {
-            val p = preset
-            freq = midiHz(pMidi)
-            vel = pVel
-            gate = pLen
-            // höhere Töne klingen schneller aus – wie bei echten Instrumenten
-            val keyScale = (261.6f / freq).pow(0.35f).coerceIn(0.35f, 2f)
-            aCoef = decayCoef(p.decay * keyScale, sr)
-            iCoef = decayCoef(p.indexDecay, sr)
-            tCoef = decayCoef(p.tineDecay, sr)
-            rCoef = decayCoef(p.release, sr)
-            attack = 0f
-            attackInc = 1f / (p.attack.coerceAtLeast(0.0005f) * sr)
-            amp = 1f
-            idx = 1f
-            tineEnv = 1f
-            releasing = false
-            active = true
-            val pan = rng.bipolar() * p.spread
-            gl = panL(pan)
-            gr = panR(pan)
-        }
-    }
-
-    private val pool = Array(voices) { Voice() }
-
-    fun noteOn(midi: Int, vel: Float, lengthSamples: Int, delay: Int = 0) {
-        val v = pool.firstOrNull { !it.busy } ?: pool.minBy { if (it.wait >= 0) 2f else it.amp * it.attack }
-        v.pMidi = midi
-        v.pVel = vel
-        v.pLen = lengthSamples.coerceAtLeast(1)
-        v.wait = delay.coerceAtLeast(0)
-    }
-
-    override fun reset() {
-        for (v in pool) {
-            v.active = false; v.wait = -1
-        }
-    }
-
-    override fun render(l: FloatArray, r: FloatArray, n: Int) {
-        val p = preset
-        val tremInc = p.tremoloRate / sr
-        val det = 2f.pow(p.detuneCents / 1200f)
-        val depth = p.index / 6.2832f
-        val hasTine = p.tine > 0f
-        if (trem.size < n) trem = FloatArray(n)
-        for (i in 0 until n) trem[i] = 1f - p.tremoloDepth * (0.5f + 0.5f * Sine.at(tremPhase + i * tremInc))
-        for (v in pool) {
-            if (!v.busy) continue
-            for (i in 0 until n) {
-                if (v.wait >= 0) {
-                    if (v.wait == 0) v.start()
-                    v.wait--
-                }
-                if (!v.active) {
-                    if (v.wait >= 0) continue else break
-                }
-                if (v.gate > 0 && --v.gate == 0) v.releasing = true
-                if (v.attack < 1f) v.attack = minOf(1f, v.attack + v.attackInc)
-                val mod = Sine.at(v.mp) * depth * (p.sustainIndex + (1f - p.sustainIndex) * v.idx) * (0.4f + 0.6f * v.vel)
-                val c = 0.5f * (Sine.at(v.cp + mod) + Sine.at(v.cp2 + mod))
-                val t = if (hasTine) Sine.at(v.tp) * v.tineEnv * p.tine else 0f
-                val out = (c + t) * v.amp * v.attack * v.vel * trem[i] * p.gain
-                l[i] += out * v.gl
-                r[i] += out * v.gr
-
-                val f = v.freq / sr
-                v.cp += f; if (v.cp >= 1f) v.cp -= 1f
-                v.cp2 += f * det; if (v.cp2 >= 1f) v.cp2 -= 1f
-                v.mp += f * p.ratio; if (v.mp >= 1f) v.mp -= v.mp.toInt()
-                v.tp += f * p.tineRatio; if (v.tp >= 1f) v.tp -= v.tp.toInt()
-                v.amp *= if (v.releasing) v.rCoef else v.aCoef
-                v.idx *= v.iCoef
-                v.tineEnv *= v.tCoef
-                if (v.amp < 0.0003f) {
-                    v.active = false
-                    if (v.wait < 0) break
-                }
-            }
-        }
-        tremPhase = (tremPhase + n * tremInc) % 1f
-    }
 }
 
 /** Klangeinstellung für den [Bass]. */
