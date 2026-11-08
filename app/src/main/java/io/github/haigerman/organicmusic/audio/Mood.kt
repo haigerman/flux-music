@@ -3,6 +3,7 @@ package io.github.haigerman.organicmusic.audio
 import io.github.haigerman.organicmusic.audio.samples.SampleBank
 import io.github.haigerman.organicmusic.audio.samples.SampleLoader
 import io.github.haigerman.organicmusic.audio.songs.AmbientSong
+import io.github.haigerman.organicmusic.audio.songs.DesertSong
 import io.github.haigerman.organicmusic.audio.songs.FlowSong
 import io.github.haigerman.organicmusic.audio.songs.FocusSong
 import io.github.haigerman.organicmusic.audio.songs.RockSong
@@ -16,7 +17,7 @@ enum class Mood(
     val subtitle: String,
     val emoji: String,
 ) {
-    SPORT("sport", "Sport", "Treibende Beats oder Rock für Training & Laufen", "🔥"),
+    SPORT("sport", "Sport", "Treibende Beats, Rock oder Desert Rock fürs Training", "🔥"),
     FOCUS("focus", "Fokus", "Ruhiger Lo-Fi-Groove zum Arbeiten & Lernen", "🎧"),
     FLOW("flow", "Kreativ", "Leichter, positiver House-Groove", "🎨"),
     RELAX("relax", "Entspannen", "Sanfte Klangflächen & Klavier", "🌿"),
@@ -43,6 +44,7 @@ enum class Style(
 ) {
     SPORT_GROOVE(Mood.SPORT, "groove", "Bass & Groove", 110, 175, 128, 0.75f, listOf("drums", "claps")),
     SPORT_ROCK(Mood.SPORT, "rock", "Rock", 100, 170, 128, 0.75f, listOf("drums", "ebass", "guitar", "guitar_mute")),
+    SPORT_DESERT(Mood.SPORT, "desert", "Desert Rock", 70, 140, 100, 0.75f, listOf("drums", "ebass", "guitar", "guitar_mute")),
     FOCUS(Mood.FOCUS, "lofi", "Lo-Fi", 65, 100, 82, 0.5f, listOf("drums_lofi", "wurli", "upright", "glock", "flute", "violas")),
     FLOW(
         Mood.FLOW, "house", "House", 96, 124, 112, 0.6f,
@@ -57,6 +59,7 @@ enum class Style(
     fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBank): Song = when (this) {
         SPORT_GROOVE -> SportSong(sampleRate, seed, bpm, intensity, bank)
         SPORT_ROCK -> RockSong(sampleRate, seed, bpm, intensity, bank)
+        SPORT_DESERT -> DesertSong(sampleRate, seed, bpm, intensity, bank)
         FOCUS -> FocusSong(sampleRate, seed, bpm, intensity, bank)
         FLOW -> FlowSong(sampleRate, seed, bpm, intensity, bank)
         RELAX -> AmbientSong(sampleRate, seed, bpm, intensity, bank, sleep = false)

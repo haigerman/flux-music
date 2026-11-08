@@ -11,6 +11,7 @@ Schlagzeug, Bass, Gitarre …). Die Musik läuft endlos und wiederholt sich nie 
 |---|---|---|
 | 🔥 **Sport · Bass & Groove** | Treibende elektronische Beats: Supersaw-Flächen, die mit der Bassdrum pumpen, rollender Bass, Arpeggios; echte Hi-Hats, Becken, Handclaps und Snare-Wirbel; Steigerung → „Drop“ | 110–175 BPM |
 | 🤘 **Sport · Rock** | Geradliniger Hardrock im Stil der großen Pub-Rock-Bands: Studio-Schlagzeug, E-Bass in Achteln, zwei echte Gitarren links/rechts über Röhrenverstärker mit Powerchords und Pausen zwischen den Akkorden, Fills, Blues-Solo mit Bendings; Strophe → Refrain → Solo | 100–170 BPM |
+| 🏜️ **Sport · Desert Rock** | Instrumentaler, schwerer Wüsten-/Post-Rock: tief gestimmte Gitarren mit dickem Fuzz, Halftime-Riffs, cleane Arpeggien mit viel Hall und Echo, zweistimmige Gitarrenmelodien, lange Spannungsbögen bis zum massiven Höhepunkt; Intro → Steigerung → Riff → Thema → Atempause → Höhepunkt | 70–140 BPM |
 | 🎧 **Fokus** | Lo-Fi-Hip-Hop zum Arbeiten & Lernen: Schlagzeug übers Lo-Fi-Mikrofon mit Swing, Wurlitzer-E-Piano mit Jazz-Akkorden, gezupfter Kontrabass, Glockenspiel oder Flöte, Vinyl-Knistern und leichtes Band-Leiern; bewusst gleichmäßig | 65–100 BPM |
 | 🎨 **Kreativ** | „Organic House“: Congas, Bongos, Shaker, Handclaps, Flügel-Akkorde, E-Bass, Marimba-Arpeggios, Flötenmelodie, Streicher | 96–124 BPM |
 | 🌿 **Entspannen** | Kammermusik ohne Schlagzeug: Konzertflügel wie von einem Pianisten gespielt (mit Pedal und Rubato), Streicherensemble, Kontrabass, Harfe, Glockenspiel, leises Meeresrauschen | 50–80 BPM |
@@ -18,7 +19,7 @@ Schlagzeug, Bass, Gitarre …). Die Musik läuft endlos und wiederholt sich nie 
 
 ## Funktionen
 
-- **Varianten** – Sport gibt es als „Bass & Groove“ oder „Rock“
+- **Varianten** – Sport gibt es als „Bass & Groove“, „Rock“ oder „Desert Rock“
 - **Tempo** je Stimmung/Variante frei einstellbar (beim Laufen z. B. passend zur Schrittfrequenz)
 - **Intensität** von sanft bis kraftvoll – blendet Instrumente weich ein und aus
   (z. B. Fokus: von „nur Klavier“ bis „mit Beat & Melodie“)
@@ -84,7 +85,7 @@ jederzeit in den Android-Einstellungen geleert werden.
 | `audio/MusicMixer.kt` | Überblendung zwischen Stücken, Limiter |
 | `audio/Mood.kt` | Die Stimmungen und ihre Varianten (Stile) mit Tempobereichen |
 | `audio/songs/Song.kt` | Taktgeber, Mischpult, Songaufbau, Melodie-Hooks |
-| `audio/songs/SportSong.kt`, `RockSong.kt` … `AmbientSong.kt` | Die Komponisten je Stimmung/Variante |
+| `audio/songs/SportSong.kt`, `RockSong.kt`, `DesertSong.kt` … `AmbientSong.kt` | Die Komponisten je Stimmung/Variante |
 | `audio/music/Theory.kt` | Tonarten, Akkorde, Stimmführung |
 | `audio/music/Patterns.kt` | Melodie- und Arpeggio-Generator |
 | `audio/instruments/Sampler.kt` | Spielt echte Instrumentenaufnahmen (Anschlagstärken, Varianten, Loops, Bendings) |

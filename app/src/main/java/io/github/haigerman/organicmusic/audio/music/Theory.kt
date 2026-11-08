@@ -14,6 +14,9 @@ enum class Scale(val label: String, val steps: IntArray, val minor: Boolean) {
 /** Deutsche Notennamen (mit H und B). */
 val NOTE_NAMES = arrayOf("C", "Des", "D", "Es", "E", "F", "Fis", "G", "As", "A", "B", "H")
 
+/** Gebräuchliche Namen der Molltonarten (cis-, fis-, gis-Moll statt des-, ges-, as-Moll). */
+private val MINOR_NAMES = arrayOf("c", "cis", "d", "es", "e", "f", "fis", "g", "gis", "a", "b", "h")
+
 /**
  * Tonart: Grundton (Tonklasse 0–11, C = 0) und Tonleiter. Stufen ("degrees") sind
  * nullbasiert und dürfen über die Oktave hinausgehen (7 = Grundton eine Oktave höher).
@@ -58,7 +61,7 @@ class Key(val tonic: Int, val scale: Scale) {
             val n = NOTE_NAMES[Math.floorMod(tonic, 12)]
             return when (scale) {
                 Scale.MAJOR -> "$n-Dur"
-                Scale.MINOR -> "${n.lowercase()}-Moll"
+                Scale.MINOR -> "${MINOR_NAMES[Math.floorMod(tonic, 12)]}-Moll"
                 else -> "$n-${scale.label}"
             }
         }

@@ -28,6 +28,7 @@ enum class Part(val label: String) {
     VERSE("Strophe"),
     CHORUS("Refrain"),
     SOLO("Solo"),
+    RIFF("Riff"),
 }
 
 class Section(val part: Part, val bars: Int)

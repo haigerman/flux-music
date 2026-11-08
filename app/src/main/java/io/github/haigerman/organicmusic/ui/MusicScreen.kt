@@ -12,6 +12,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,6 +82,7 @@ private val Style.intensityLabels: Pair<String, String>
     get() = when (this) {
         Style.SPORT_GROOVE -> "locker" to "volle Power"
         Style.SPORT_ROCK -> "eine Gitarre" to "volle Band & Solos"
+        Style.SPORT_DESERT -> "eine Gitarre" to "Wand aus Gitarren"
         Style.FOCUS -> "nur Klavier" to "mit Beat & Melodie"
         Style.FLOW -> "reduziert" to "voller Groove"
         Style.RELAX -> "Meer & Flächen" to "mehr Klavier"
@@ -90,6 +93,7 @@ private val Style.label: String
     get() = when (this) {
         Style.SPORT_GROOVE -> "🔊  Bass & Groove"
         Style.SPORT_ROCK -> "🤘  Rock"
+        Style.SPORT_DESERT -> "🏜️  Desert Rock"
         else -> title
     }
 
@@ -201,7 +205,10 @@ private fun Controls(state: MusicState) {
             // Varianten (z. B. Sport: Bass & Groove / Rock)
             if (mood.styles.size > 1) {
                 Text("Variante", fontSize = 15.sp, color = TextMain)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 4.dp, bottom = 10.dp).horizontalScroll(rememberScrollState()),
+                ) {
                     for (s in mood.styles) {
                         FilterChip(
                             selected = s == style,
