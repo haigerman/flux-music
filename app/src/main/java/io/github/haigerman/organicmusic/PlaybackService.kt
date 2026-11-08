@@ -155,11 +155,12 @@ class PlaybackService : LifecycleService() {
                     // Instrumente laden (beim ersten Mal dekodieren) – im Hintergrund
                     val song = withContext(Dispatchers.Default) {
                         val now = MusicRepository.state.value.settings(style)
-                        style.create(SAMPLE_RATE, System.nanoTime(), now.bpm.toFloat(), now.intensity, loader)
+                        style.create(SAMPLE_RATE, System.nanoTime(), now.bpm.toFloat(), now.intensity, loader, now.variation)
                     }
                     val latest = MusicRepository.state.value.settings(style)
                     song.targetBpm = latest.bpm.toFloat()
                     song.targetIntensity = latest.intensity
+                    song.targetVariation = latest.variation
                     engine.mixer.play(song)
                 } finally {
                     MusicRepository.setLoading(false)
@@ -169,6 +170,7 @@ class PlaybackService : LifecycleService() {
         engine.mixer.song?.let {
             it.targetBpm = set.bpm.toFloat()
             it.targetIntensity = set.intensity
+            it.targetVariation = set.variation
         }
         if (s.playing && !playing) startPlayback()
         if (!s.playing && playing) stopPlayback()

@@ -23,6 +23,10 @@ Schlagzeug, Bass, Gitarre …). Die Musik läuft endlos und wiederholt sich nie 
 - **Tempo** je Stimmung/Variante frei einstellbar (beim Laufen z. B. passend zur Schrittfrequenz)
 - **Intensität** von sanft bis kraftvoll – blendet Instrumente weich ein und aus
   (z. B. Fokus: von „nur Klavier“ bis „mit Beat & Melodie“)
+- **Variabilität** von gleichbleibend bis abwechslungsreich: Muster entwickeln sich alle
+  paar Takte weiter, Akkorde werden durch verwandte ersetzt, neue Melodiemotive, wechselnde
+  Besetzung, eine Dynamik-Kurve von Phrase zu Phrase, kürzere Teile und mehr Fills.
+  Ganz links klingt es exakt wie die ursprüngliche, gleichbleibende Fassung.
 - **Neues Stück** 🎲 – blendet in ein frisch komponiertes Stück über
 - Wechsel der Stimmung während der Wiedergabe mit weicher Überblendung
 - Stücke entwickeln sich selbst weiter: Intro → Groove → Thema/Steigerung → Höhepunkt →

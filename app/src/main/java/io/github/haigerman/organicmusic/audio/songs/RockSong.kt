@@ -119,6 +119,8 @@ class RockSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val ba
     }
 
     private var tonic = 9
+    private var verseH = intArrayOf(0, 0, 5, 0)
+    private var chorusH = intArrayOf(0, 10, 5, 0)
     private var verseRiff = Riff(2)
     private var chorusRiff = Riff(4)
     private var kickPattern = kickPatterns[0]
@@ -243,8 +245,10 @@ class RockSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val ba
         progression = intArrayOf(0)
         chordBars = 1
         swing = 0f
-        verseRiff = makeRiff(rng.pick(verseHarmony), 2, chorus = false)
-        chorusRiff = makeRiff(rng.pick(chorusHarmony), 4, chorus = true)
+        verseH = rng.pick(verseHarmony)
+        verseRiff = makeRiff(verseH, 2, chorus = false)
+        chorusH = rng.pick(chorusHarmony)
+        chorusRiff = makeRiff(chorusH, 4, chorus = true)
         kickPattern = rng.pick(kickPatterns)
         introAlone = if (rng.chance(0.6f)) 2 else 0
     }
@@ -281,7 +285,7 @@ class RockSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val ba
         }
         // Fill im letzten Takt einer Phrase (oder vor dem nächsten Teil)
         val phraseEnd = barsLeftInSection == 1 || barInSection % 8 == 7
-        fill = if (drumsIn && phraseEnd && rng.chance(0.35f + 0.6f * intensity)) rng.pick(fills) else null
+        fill = if (drumsIn && phraseEnd && rng.chance(0.35f + 0.6f * intensity + 0.3f * variation)) rng.pick(fills) else null
         if (fill != null && barsLeftInSection == 1) crashNext = true
 
         if (part == Part.SOLO && barInSection % 2 == 0) lick = makeLick()
@@ -404,6 +408,17 @@ class RockSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val ba
                 m.releaseAll(0.03f)
             }
         }
+    }
+
+    init {
+        for (c in listOf(chGtrR, chLead)) c.optional = true
+    }
+
+    /** Variabilität: Riffs werden variiert oder neu erfunden, der Beat wechselt. */
+    override fun onPhrase() {
+        if (vary(0.4f)) verseRiff = makeRiff(if (vary(0.5f)) rng.pick(verseHarmony).also { verseH = it } else verseH, 2, chorus = false)
+        if (vary(0.3f)) chorusRiff = makeRiff(chorusH, 4, chorus = true)
+        if (vary(0.35f)) kickPattern = rng.pick(kickPatterns)
     }
 
     override fun updateLevels() {

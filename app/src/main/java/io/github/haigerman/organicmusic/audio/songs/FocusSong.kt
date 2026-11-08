@@ -235,6 +235,21 @@ class FocusSong(sr: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleB
         }
     }
 
+    init {
+        for (c in listOf(chPad, chGlock, chFlute)) c.optional = true
+    }
+
+    /** Variabilität: Beat, Anschlagmuster, Bassfigur und Melodie-Instrument wechseln. */
+    override fun onPhrase() {
+        if (vary(0.4f)) kickPattern = rng.pick(kickPatterns)
+        if (vary(0.45f)) comp = rng.pick(compPatterns)
+        if (vary(0.3f)) ghostSnare = !ghostSnare
+        if (vary(0.25f)) crossstick = !crossstick
+        if (vary(0.35f)) hat16 = rng.range(0.05f, 0.3f)
+        if (vary(0.35f)) bassStyle = rng.int(3)
+        if (vary(0.25f)) useFlute = !useFlute
+    }
+
     override fun updateLevels() {
         val part = section.part
         val drumsOn = when (part) {

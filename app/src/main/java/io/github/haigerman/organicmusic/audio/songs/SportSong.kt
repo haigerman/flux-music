@@ -287,6 +287,18 @@ class SportSong(sr: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleB
         }
     }
 
+    init {
+        for (c in listOf(chArp, chOpen, chLead, chKickLayer)) c.optional = true
+    }
+
+    /** Variabilität: Bassfigur, Hi-Hats, Arpeggio und Pickup-Bassdrum entwickeln sich weiter. */
+    override fun onPhrase() {
+        if (vary(0.5f)) arpPattern = Melody.arpPattern(rng, 3, rng.range(0.6f, 1f))
+        if (vary(0.35f)) bassStyle = rng.int(3)
+        if (vary(0.35f)) hatStyle = rng.int(2)
+        if (vary(0.3f)) kickPickup = !kickPickup
+    }
+
     override fun updateLevels() {
         val part = section.part
         fun lv(intro: Float, groove: Float, build: Float, drop: Float, brk: Float) = when (part) {

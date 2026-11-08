@@ -243,6 +243,20 @@ private fun Controls(state: MusicState) {
                 Text(style.intensityLabels.second, fontSize = 12.sp, color = TextSoft)
             }
 
+            Spacer(Modifier.height(10.dp))
+
+            // Variabilität
+            Text("Variabilität", fontSize = 15.sp, color = TextMain)
+            Slider(
+                value = set.variation,
+                onValueChange = { MusicRepository.setVariation(it) },
+                colors = sliderColors,
+            )
+            Row {
+                Text("gleichbleibend", fontSize = 12.sp, color = TextSoft, modifier = Modifier.weight(1f))
+                Text("abwechslungsreich", fontSize = 12.sp, color = TextSoft)
+            }
+
             Spacer(Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(

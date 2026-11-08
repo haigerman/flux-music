@@ -53,10 +53,13 @@ enum class Style(
     RELAX(Mood.RELAX, "ambient", "Ambient", 50, 80, 64, 0.5f, listOf("piano", "violins", "violas", "cellos", "contrabass", "harp", "glock")),
     SLEEP(Mood.SLEEP, "ambient", "Ambient", 40, 60, 50, 0.3f, listOf("piano", "violas", "cellos", "contrabass", "harp"));
 
+    /** Standard für den Regler "Variabilität" (0 = gleichbleibend wie bisher). */
+    val variationDefault: Float get() = 0.5f
+
     /** Schlüssel für gespeicherte Einstellungen (der erste Stil nutzt den Namen der Stimmung). */
     val key: String get() = if (this == mood.styles.first()) mood.id else "${mood.id}_$id"
 
-    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBank): Song = when (this) {
+    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBank, variation: Float = 0f): Song = when (this) {
         SPORT_GROOVE -> SportSong(sampleRate, seed, bpm, intensity, bank)
         SPORT_ROCK -> RockSong(sampleRate, seed, bpm, intensity, bank)
         SPORT_DESERT -> DesertSong(sampleRate, seed, bpm, intensity, bank)
@@ -64,11 +67,11 @@ enum class Style(
         FLOW -> FlowSong(sampleRate, seed, bpm, intensity, bank)
         RELAX -> AmbientSong(sampleRate, seed, bpm, intensity, bank, sleep = false)
         SLEEP -> AmbientSong(sampleRate, seed, bpm, intensity, bank, sleep = true)
-    }
+    }.also { it.targetVariation = variation }
 
     /** Lädt die Instrumente (falls nötig) und erstellt das Stück. */
-    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, loader: SampleLoader): Song =
-        create(sampleRate, seed, bpm, intensity, SampleBank.load(loader, instruments))
+    fun create(sampleRate: Int, seed: Long, bpm: Float, intensity: Float, loader: SampleLoader, variation: Float = 0f): Song =
+        create(sampleRate, seed, bpm, intensity, SampleBank.load(loader, instruments), variation)
 
     /** Erstellt ein Stück mit Standard-Tempo und -Intensität. */
     fun create(sampleRate: Int, seed: Long, loader: SampleLoader): Song =

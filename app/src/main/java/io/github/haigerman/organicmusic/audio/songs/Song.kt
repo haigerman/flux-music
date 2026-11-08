@@ -63,6 +63,10 @@ class Channel(
     var level = 0f
     internal var silent = true
 
+    /** Darf bei hoher Variabilität phrasenweise pausieren (Besetzungswechsel). */
+    var optional = false
+    internal var dropped = false
+
     /** Ob neue Noten ausgelöst werden sollen. */
     val on: Boolean get() = target > 0.01f
 }
@@ -94,9 +98,14 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
     @Volatile
     var targetIntensity = startIntensity
 
+    /** Wie abwechslungsreich das Stück ist (0 = gleichbleibend wie ursprünglich, 1 = sehr wechselhaft). */
+    @Volatile
+    var targetVariation = 0f
+
     var bpm = startBpm
         protected set
     protected var intensity = startIntensity
+    protected var variation = 0f
     protected var swing = 0f
 
     /** Laufender Sechzehntel-Zähler seit Beginn. */
@@ -211,10 +220,67 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
         duckT = 0
     }
 
-    /** Akkord, der im Takt [bar] (des Stücks) klingt. */
+    /** Akkord, der im Takt [bar] (des Stücks) klingt – ggf. mit Ersatzakkord (Variabilität). */
     protected fun chordAt(bar: Int): Chord {
         val idx = Math.floorMod(bar / chordBars, progression.size)
-        return key.chord(progression[idx], chordSize)
+        val deg = substitutes?.getOrNull(idx)?.takeIf { it >= 0 } ?: progression[idx]
+        return key.chord(deg, chordSize)
+    }
+
+    // ---------- Variabilität ----------
+
+    /** Ersatzakkorde je Position der Akkordfolge (-1 = Original); wird phrasenweise neu gewählt. */
+    private var substitutes: IntArray? = null
+
+    /** Dynamik-Kurve: Energie schwankt von Phrase zu Phrase (nur bei Variabilität > 0). */
+    private var energyOffset = 0f
+    private var hookParams: (() -> Unit)? = null
+
+    /** Zufallsentscheidung, die nur bei Variabilität > 0 überhaupt gezogen wird. */
+    protected fun vary(p: Float): Boolean = variation > 0f && rng.chance(variation * p)
+
+    /** Wird alle 4 Takte aufgerufen – Unterklassen wandeln hier ihre Muster ab. */
+    protected open fun onPhrase() {}
+
+    private fun phraseVariation() {
+        if (variation <= 0f) {
+            // Regler auf 0: alles zurück zum ursprünglichen, gleichbleibenden Verhalten
+            for (c in channels) c.dropped = false
+            substitutes = null
+            energyOffset = 0f
+            return
+        }
+        // Besetzung: einzelne, verzichtbare Instrumente pausieren für eine Phrase
+        val opt = channels.filter { it.optional }
+        for (c in opt) c.dropped = rng.chance(variation * 0.3f)
+        // Energie dieser Phrase: mal ruhiger und dünner, mal voller
+        energyOffset = variation * rng.pick(intArrayOf(-4, -3, -2, -1, 0, 1, 2, 3)) / 10f
+        if (opt.isNotEmpty() && opt.all { it.dropped }) opt[rng.int(opt.size)].dropped = false
+        // Harmonie: verwandte Ersatzakkorde (Terzverwandtschaft), der erste Akkord bleibt als Anker
+        var changed = false
+        val sub = IntArray(progression.size) { -1 }
+        for (i in 1 until progression.size) {
+            if (rng.chance(variation * 0.4f)) {
+                sub[i] = Math.floorMod(progression[i] + if (rng.chance(0.5f)) 5 else 2, 7)
+                changed = true
+            }
+        }
+        val before = substitutes?.contentEquals(sub) ?: !changed
+        substitutes = if (changed) sub else null
+        // Melodie: bei neuer Harmonie oder per Zufall ein neues Motiv
+        if (!before || rng.chance(variation * 0.4f)) hookParams?.invoke()
+        onPhrase()
+    }
+
+    /** Teile werden bei hoher Variabilität kürzer – es kommt öfter Neues. */
+    private fun shorten(p: List<Section>): List<Section> {
+        if (variation <= 0f) return p
+        return p.map { sec ->
+            if (sec.bars < 8) sec else {
+                val bars = (Math.round(sec.bars * (1f - 0.5f * variation) / 4f) * 4).coerceAtLeast(4)
+                Section(sec.part, bars)
+            }
+        }
     }
 
     protected val chord: Chord get() = chordAt(pieceBar)
@@ -254,6 +320,11 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
         maxLength: Int = 8,
         velocity: Float = 0.8f,
     ) {
+        hookParams = { makeHooks(low, high, notesPerHalf, syncopation, pentatonic, maxLength, velocity) }
+        makeHooks(low, high, notesPerHalf, syncopation, pentatonic, maxLength, velocity)
+    }
+
+    private fun makeHooks(low: Int, high: Int, notesPerHalf: Int, syncopation: Float, pentatonic: Boolean, maxLength: Int, velocity: Float) {
         val cycle = chordBars * progression.size
         val blocks = maxOf(1, cycle / 4)
         var last: Int? = null
@@ -283,8 +354,9 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
     private fun doStep(): Long {
         if (!started) {
             started = true
+            variation = targetVariation
             newPiece(true)
-            plan = makePlan()
+            plan = shorten(makePlan())
             sectionIndex = 0
             barInSection = 0
             pieceBar = 0
@@ -296,12 +368,19 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
             // Tempo und Intensität gleiten weich zum Zielwert
             val tb = targetBpm
             bpm += (tb - bpm).coerceIn(-3f, 3f)
-            val ti = targetIntensity
+            val ti = (targetIntensity + energyOffset).coerceIn(0f, 1f)
             intensity += (ti - intensity).coerceIn(-0.08f, 0.08f)
+            val tv = targetVariation
+            variation += (tv - variation).coerceIn(-0.1f, 0.1f)
             delay.setDelaySeconds(delayBeats * 60f / bpm)
             updateLevels()
+            for (c in channels) if (c.dropped) c.target = 0f
         }
         if (s == 0) {
+            if (step > 0 && barInSection % 4 == 0) {
+                phraseVariation()
+                for (c in channels) if (c.dropped) c.target = 0f
+            }
             onBar()
             info = SongInfo(keyName(), chordName(), section.part.label, Math.round(bpm))
         }
@@ -316,8 +395,9 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
             barInSection = 0
             sectionIndex++
             if (sectionIndex >= plan.size) {
+                substitutes = null
                 newPiece(false)
-                plan = makePlan()
+                plan = shorten(makePlan())
                 sectionIndex = 0
                 pieceBar = 0
             }

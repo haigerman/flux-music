@@ -173,7 +173,7 @@ class AmbientSong(
                 piano.noteOn(hook.midi, hook.vel * (0.85f + 0.3f * intensity), pedal(s), human(25f))
                 melodyNote = hook.midi
             } else if (!(part == Part.VARIATION && !sleep)) {
-                val density = if (sleep) 0.05f + 0.12f * intensity else 0.1f + 0.3f * intensity
+                val density = (if (sleep) 0.05f + 0.12f * intensity else 0.1f + 0.3f * intensity) * (1f + 0.5f * variation)
                 val strong = if (s % 8 == 0) 1.5f else if (s % 4 == 0) 1.1f else 0.65f
                 val quiet = part == Part.FLOAT && sleep
                 if (!quiet && rng.chance(density * strong)) playMelodyNote(s)
@@ -193,6 +193,18 @@ class AmbientSong(
                     harp.noteOn(notes[start + k], rng.range(0.3f, 0.5f) * (1f - k * 0.05f), -1, ms(gap * k) + human(15f))
                 }
                 harpNext = rng.int(if (sleep) 6 else 3, if (sleep) 12 else 7)
+                if (variation > 0f) harpNext = maxOf(2, Math.round(harpNext * (1f - 0.5f * variation)))
+            }
+        }
+
+        // gebrochene Begleitung: linke Hand spielt die Akkordtöne nacheinander (bei Variabilität)
+        if (broken && chPiano.on && s % 4 == 2) {
+            val lo = if (sleep) 43 else 48
+            val hi = if (sleep) 62 else 67
+            val pool = (lo..hi).filter { c.contains(it) }
+            if (pool.isNotEmpty()) {
+                val n = pool[(s / 4 + barInSection * 4) % pool.size]
+                piano.noteOn(n, (0.2f + 0.1f * intensity) * rng.range(0.85f, 1.05f), pedal(s), human(25f))
             }
         }
 
@@ -215,8 +227,8 @@ class AmbientSong(
 
     private fun playMelodyNote(s: Int) {
         val c = chord
-        val low = if (sleep) 60 else 64
-        val high = if (sleep) 79 else 88
+        val low = (if (sleep) 60 else 64) + register
+        val high = (if (sleep) 79 else 88) + register
         // neuer Bogen
         if (phraseLeft <= 0) {
             phraseLeft = rng.int(4, 9)
@@ -246,6 +258,25 @@ class AmbientSong(
             if (under.isNotEmpty()) piano.noteOn(rng.pick(under), vel * 0.7f, pedal(s), ms(40f) + human(30f))
         }
     }
+
+    init {
+        // bei Variabilität wechselt die Besetzung: Klavier solo, mit Celli, volles Ensemble …
+        for (c in listOfNotNull(chHarp, chGlock, chViolins, chViolas)) c.optional = true
+    }
+
+    /** Variabilität: Akkordfolgen, Lage der Melodie und Begleitfiguren wechseln innerhalb eines Stücks. */
+    override fun onPhrase() {
+        if (pieceBar % chordBars == 0 && vary(0.4f)) progression = rng.pick(if (sleep) sleepProgressions else relaxProgressions)
+        if (vary(0.4f)) phraseLeft = 0
+        if (vary(0.5f)) register = rng.pick(intArrayOf(-12, -5, 0, 0, 5, 7))
+        if (vary(0.5f)) broken = !broken
+    }
+
+    /** Lagenwechsel der rechten Hand (Halbtöne) – nur bei Variabilität. */
+    private var register = 0
+
+    /** Gebrochene Begleitung der linken Hand (Arpeggio statt gehaltener Töne). */
+    private var broken = false
 
     override fun updateLevels() {
         val part = section.part

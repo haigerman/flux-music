@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-/** Tempo und Intensität – je Stil gespeichert. */
-data class MoodSettings(val bpm: Int, val intensity: Float)
+/** Tempo, Intensität und Variabilität – je Stil gespeichert. */
+data class MoodSettings(val bpm: Int, val intensity: Float, val variation: Float = 0f)
 
 data class MusicState(
     val mood: Mood = Mood.FOCUS,
@@ -24,7 +24,7 @@ data class MusicState(
 ) {
     fun styleOf(m: Mood): Style = styles[m] ?: m.styles.first()
     val style: Style get() = styleOf(mood)
-    fun settings(s: Style): MoodSettings = settings[s] ?: MoodSettings(s.bpmDefault, s.intensityDefault)
+    fun settings(s: Style): MoodSettings = settings[s] ?: MoodSettings(s.bpmDefault, s.intensityDefault, s.variationDefault)
     val current: MoodSettings get() = settings(style)
 }
 
@@ -63,6 +63,7 @@ object MusicRepository {
             MoodSettings(
                 bpm = p.getInt("bpm_${s.key}", s.bpmDefault).coerceIn(s.bpmMin, s.bpmMax),
                 intensity = p.getFloat("int_${s.key}", s.intensityDefault).coerceIn(0f, 1f),
+                variation = p.getFloat("var_${s.key}", s.variationDefault).coerceIn(0f, 1f),
             )
         }
         val styles = Mood.entries.associateWith { m ->
@@ -91,6 +92,11 @@ object MusicRepository {
             val s = st.style
             st.copy(settings = st.settings + (s to st.current.copy(bpm = bpm.coerceIn(s.bpmMin, s.bpmMax))))
         }
+        save()
+    }
+
+    fun setVariation(v: Float) {
+        _state.update { st -> st.copy(settings = st.settings + (st.style to st.current.copy(variation = v.coerceIn(0f, 1f)))) }
         save()
     }
 
@@ -124,6 +130,7 @@ object MusicRepository {
             s.settings.forEach { (st, v) ->
                 putInt("bpm_${st.key}", v.bpm)
                 putFloat("int_${st.key}", v.intensity)
+                putFloat("var_${st.key}", v.variation)
             }
             remove("timer") // früherer Schlaf-Timer – nicht mehr verwendet
             apply()

@@ -206,6 +206,25 @@ class FlowSong(sr: Int, seed: Long, bpm: Float, intensity: Float, bank: SampleBa
         }
     }
 
+    init {
+        for (c in listOf(chConga, chMarimba, chShaker, chViolins, chFlute)) c.optional = true
+    }
+
+    /** Variabilität: Bass-Groove, Piano-Rhythmus, Percussion und Arpeggio entwickeln sich. */
+    override fun onPhrase() {
+        if (vary(0.4f)) {
+            bassPattern = rng.pick(bassPatterns)
+            bassOct = BooleanArray(16) { it != 0 && rng.chance(0.25f) }
+        }
+        if (vary(0.25f)) bassFifth = BooleanArray(16) { it != 0 && rng.chance(0.15f) }
+        if (vary(0.45f)) stabs = rng.pick(stabPatterns)
+        if (vary(0.4f)) {
+            congaSteps = (0 until 16).filter { it % 4 != 0 && rng.chance(if (it % 2 == 1) 0.25f else 0.38f) }.toIntArray()
+            congaKey = IntArray(16) { rng.pick(intArrayOf(62, 63, 63, 64, 60, 61)) }
+        }
+        if (vary(0.45f)) arpPattern = Melody.arpPattern(rng, 4, rng.range(0.4f, 0.8f))
+    }
+
     override fun updateLevels() {
         val part = section.part
         fun lv(intro: Float, groove: Float, theme: Float, brk: Float, outro: Float) = when (part) {

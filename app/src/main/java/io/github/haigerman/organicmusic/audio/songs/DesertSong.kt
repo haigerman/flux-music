@@ -228,7 +228,7 @@ class DesertSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val 
             crashNext = false
         }
         val phraseEnd = barsLeftInSection == 1 || barInSection % 4 == 3
-        fill = if (heavyPart && phraseEnd && rng.chance(0.4f + 0.5f * intensity)) {
+        fill = if (heavyPart && phraseEnd && rng.chance(0.4f + 0.5f * intensity + 0.3f * variation)) {
             rng.pick(listOf(
                 listOf(8 to 1, 10 to 1, 12 to 2, 14 to 2),
                 listOf(12 to 0, 13 to 0, 14 to 1, 15 to 2),
@@ -364,6 +364,20 @@ class DesertSong(sr: Int, seed: Long, bpm: Float, intensity: Float, private val 
             g.releaseAll(0.03f)
             g.noteOn(low(interval), vel, stepsToSamples(lenSteps - 0.2f), if (g === heavyRs) ms(7f) else human(3f))
         }
+    }
+
+    init {
+        for (c in listOf(chHeavyR, chLeadB)) c.optional = true
+    }
+
+    /** Variabilität: neue Riffs, andere Arpeggien und Melodien, Wechsel des Halftime-Gefühls. */
+    override fun onPhrase() {
+        if (section.part != Part.DROP && vary(0.4f)) riffA = makeRiff(heavy = false)
+        if (section.part != Part.RIFF && vary(0.35f)) riffB = makeRiff(heavy = true)
+        if (vary(0.4f)) arp = IntArray(16) { s -> if (rng.chance(0.5f)) s % 6 else rng.int(6) }
+        if (vary(0.4f)) leadPhrase = makeLead()
+        if (vary(0.2f)) halfTime = !halfTime
+        if (vary(0.3f)) cleanChords = rng.pick(listOf(intArrayOf(0, 8, 3, 10), intArrayOf(0, 5, 8, 7), intArrayOf(0, 10, 8, 10), intArrayOf(0, 3, 10, 5)))
     }
 
     override fun updateLevels() {
