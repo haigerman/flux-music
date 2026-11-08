@@ -1,6 +1,6 @@
 package io.github.haigerman.organicmusic
 
-import io.github.haigerman.organicmusic.audio.Mood
+import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.audio.MusicMixer
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,7 +21,7 @@ class SongRenderTest {
     private val sr = 44100
     private val seconds = (System.getProperty("previewSeconds") ?: "60").toInt()
 
-    private fun render(mood: Mood, seed: Long, intensity: Float = mood.intensityDefault, bpm: Int = mood.bpmDefault): FloatArray {
+    private fun render(mood: Style, seed: Long, intensity: Float = mood.intensityDefault, bpm: Int = mood.bpmDefault): FloatArray {
         val mixer = MusicMixer(sr)
         mixer.play(mood.create(sr, seed, bpm.toFloat(), intensity))
         mixer.setMasterImmediate(1f)
@@ -67,12 +67,12 @@ class SongRenderTest {
     @Test
     fun renderEachMood() {
         val dir = File("build/sound-previews")
-        for (mood in Mood.entries) {
+        for (mood in Style.entries) {
             val buf = render(mood, seed = 4242L)
             val (rms, peak) = stats(mood.name, buf)
             assertTrue("${mood.name} ist stumm", rms > 0.005)
             assertTrue("${mood.name} übersteuert", peak <= 1.0)
-            writeWav(File(dir, "${mood.id}.wav"), buf)
+            writeWav(File(dir, "${mood.key}.wav"), buf)
         }
     }
 
@@ -80,7 +80,7 @@ class SongRenderTest {
     fun moodSwitchCrossfadesSmoothly() {
         val mixer = MusicMixer(sr)
         mixer.setMasterImmediate(1f)
-        val order = listOf(Mood.FOCUS, Mood.SPORT, Mood.RELAX, Mood.FLOW, Mood.FLOW, Mood.SLEEP)
+        val order = listOf(Style.FOCUS, Style.SPORT_ROCK, Style.SPORT_GROOVE, Style.RELAX, Style.FLOW, Style.SPORT_ROCK, Style.SLEEP)
         val perMood = sr * 12
         val out = FloatArray(perMood * order.size * 2)
         val chunk = FloatArray(1024 * 2)
@@ -88,7 +88,7 @@ class SongRenderTest {
         for ((i, m) in order.withIndex()) {
             mixer.play(m.create(sr, 100L + i, m.bpmDefault.toFloat(), m.intensityDefault))
             // schnelles Hin- und Herschalten mitten in der Überblendung
-            if (i == 2) mixer.play(Mood.FOCUS.create(sr, 5L, 82f, 0.5f))
+            if (i == 2) mixer.play(Style.FOCUS.create(sr, 5L, 82f, 0.5f))
             if (i == 2) mixer.play(m.create(sr, 6L, m.bpmDefault.toFloat(), m.intensityDefault))
             var n = 0
             while (n < perMood) {
@@ -113,7 +113,7 @@ class SongRenderTest {
     @Test
     fun longRunOverManyPieces() {
         // 15 Minuten je Stimmung: mehrere Teile, Tonartwechsel, alle Abschnitte
-        for (mood in Mood.entries) {
+        for (mood in Style.entries) {
             val mixer = MusicMixer(sr)
             val song = mood.create(sr, 31337L, mood.bpmMax.toFloat(), 1f)
             mixer.play(song)
@@ -137,7 +137,7 @@ class SongRenderTest {
 
     @Test
     fun extremeSettingsStayClean() {
-        for (mood in Mood.entries) {
+        for (mood in Style.entries) {
             for ((i, b) in listOf(0f to mood.bpmMin, 1f to mood.bpmMax)) {
                 val buf = render(mood, seed = 7L + b, intensity = i, bpm = b)
                 val (rms, peak) = stats("${mood.name}@$b/$i", buf)

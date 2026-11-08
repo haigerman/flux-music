@@ -3,18 +3,21 @@ package io.github.haigerman.organicmusic.data
 import android.content.Context
 import android.content.SharedPreferences
 import io.github.haigerman.organicmusic.audio.Mood
+import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.audio.songs.SongInfo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-/** Tempo und Intensität – je Stimmung gespeichert. */
+/** Tempo und Intensität – je Stil gespeichert. */
 data class MoodSettings(val bpm: Int, val intensity: Float)
 
 data class MusicState(
     val mood: Mood = Mood.FOCUS,
-    val settings: Map<Mood, MoodSettings> = emptyMap(),
+    /** Gewählter Stil je Stimmung. */
+    val styles: Map<Mood, Style> = emptyMap(),
+    val settings: Map<Style, MoodSettings> = emptyMap(),
     val playing: Boolean = false,
     /** 0 = kein Timer */
     val timerMinutes: Int = 0,
@@ -23,8 +26,10 @@ data class MusicState(
     /** Wird bei "Neues Stück" hochgezählt. */
     val pieceRequest: Int = 0,
 ) {
-    fun settings(m: Mood): MoodSettings = settings[m] ?: MoodSettings(m.bpmDefault, m.intensityDefault)
-    val current: MoodSettings get() = settings(mood)
+    fun styleOf(m: Mood): Style = styles[m] ?: m.styles.first()
+    val style: Style get() = styleOf(mood)
+    fun settings(s: Style): MoodSettings = settings[s] ?: MoodSettings(s.bpmDefault, s.intensityDefault)
+    val current: MoodSettings get() = settings(style)
 }
 
 /** Was gerade erklingt – vom Dienst veröffentlicht, für Anzeige und Puls. */
@@ -50,14 +55,19 @@ object MusicRepository {
         if (prefs != null) return
         val p = context.applicationContext.getSharedPreferences("music", Context.MODE_PRIVATE)
         prefs = p
-        val settings = Mood.entries.associateWith { m ->
+        val settings = Style.entries.associateWith { s ->
             MoodSettings(
-                bpm = p.getInt("bpm_${m.id}", m.bpmDefault).coerceIn(m.bpmMin, m.bpmMax),
-                intensity = p.getFloat("int_${m.id}", m.intensityDefault).coerceIn(0f, 1f),
+                bpm = p.getInt("bpm_${s.key}", s.bpmDefault).coerceIn(s.bpmMin, s.bpmMax),
+                intensity = p.getFloat("int_${s.key}", s.intensityDefault).coerceIn(0f, 1f),
             )
+        }
+        val styles = Mood.entries.associateWith { m ->
+            val id = p.getString("style_${m.id}", null)
+            m.styles.firstOrNull { it.id == id } ?: m.styles.first()
         }
         _state.value = MusicState(
             mood = Mood.byId(p.getString("mood", null)),
+            styles = styles,
             settings = settings,
             timerMinutes = p.getInt("timer", 0),
         )
@@ -68,21 +78,26 @@ object MusicRepository {
         save()
     }
 
+    fun selectStyle(s: Style) {
+        _state.update { it.copy(mood = s.mood, styles = it.styles + (s.mood to s)) }
+        save()
+    }
+
     fun setBpm(bpm: Int) {
-        _state.update { s ->
-            val m = s.mood
-            s.copy(settings = s.settings + (m to s.current.copy(bpm = bpm.coerceIn(m.bpmMin, m.bpmMax))))
+        _state.update { st ->
+            val s = st.style
+            st.copy(settings = st.settings + (s to st.current.copy(bpm = bpm.coerceIn(s.bpmMin, s.bpmMax))))
         }
         save()
     }
 
     fun setIntensity(v: Float) {
-        _state.update { s -> s.copy(settings = s.settings + (s.mood to s.current.copy(intensity = v.coerceIn(0f, 1f)))) }
+        _state.update { st -> st.copy(settings = st.settings + (st.style to st.current.copy(intensity = v.coerceIn(0f, 1f)))) }
         save()
     }
 
     fun resetTempo() {
-        setBpm(_state.value.mood.bpmDefault)
+        setBpm(_state.value.style.bpmDefault)
     }
 
     fun newPiece() {
@@ -118,9 +133,10 @@ object MusicRepository {
         val s = _state.value
         prefs?.edit()?.apply {
             putString("mood", s.mood.id)
-            s.settings.forEach { (m, v) ->
-                putInt("bpm_${m.id}", v.bpm)
-                putFloat("int_${m.id}", v.intensity)
+            s.styles.forEach { (m, st) -> putString("style_${m.id}", st.id) }
+            s.settings.forEach { (st, v) ->
+                putInt("bpm_${st.key}", v.bpm)
+                putFloat("int_${st.key}", v.intensity)
             }
             putInt("timer", s.timerMinutes)
             apply()

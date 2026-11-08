@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.haigerman.organicmusic.audio.Mood
+import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.data.MusicRepository
 import io.github.haigerman.organicmusic.data.MusicState
 import io.github.haigerman.organicmusic.data.NowPlaying
@@ -75,14 +76,22 @@ import kotlin.math.roundToInt
 
 private val timerOptions = listOf(0, 15, 30, 45, 60, 90)
 
-/** Beschriftung der Intensität je Stimmung: (niedrig, hoch). */
-private val Mood.intensityLabels: Pair<String, String>
+/** Beschriftung der Intensität je Stil: (niedrig, hoch). */
+private val Style.intensityLabels: Pair<String, String>
     get() = when (this) {
-        Mood.SPORT -> "locker" to "volle Power"
-        Mood.FOCUS -> "nur Klavier" to "mit Beat & Melodie"
-        Mood.FLOW -> "reduziert" to "voller Groove"
-        Mood.RELAX -> "Meer & Flächen" to "mehr Klavier"
-        Mood.SLEEP -> "fast still" to "mehr Bewegung"
+        Style.SPORT_GROOVE -> "locker" to "volle Power"
+        Style.SPORT_ROCK -> "eine Gitarre" to "volle Band & Solos"
+        Style.FOCUS -> "nur Klavier" to "mit Beat & Melodie"
+        Style.FLOW -> "reduziert" to "voller Groove"
+        Style.RELAX -> "Meer & Flächen" to "mehr Klavier"
+        Style.SLEEP -> "fast still" to "mehr Bewegung"
+    }
+
+private val Style.label: String
+    get() = when (this) {
+        Style.SPORT_GROOVE -> "🔊  Bass & Groove"
+        Style.SPORT_ROCK -> "🤘  Rock"
+        else -> title
     }
 
 private val Mood.hint: String?
@@ -179,6 +188,7 @@ private fun MoodCard(mood: Mood, selected: Boolean, onClick: () -> Unit) {
 @Composable
 private fun Controls(state: MusicState) {
     val mood = state.mood
+    val style = state.style
     val set = state.current
     val accent = mood.accent
     val sliderColors = SliderDefaults.colors(
@@ -188,6 +198,23 @@ private fun Controls(state: MusicState) {
     )
     Surface(color = Card.copy(alpha = 0.85f), shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 14.dp)) {
+            // Varianten (z. B. Sport: Bass & Groove / Rock)
+            if (mood.styles.size > 1) {
+                Text("Variante", fontSize = 15.sp, color = TextMain)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 4.dp, bottom = 10.dp)) {
+                    for (s in mood.styles) {
+                        FilterChip(
+                            selected = s == style,
+                            onClick = { MusicRepository.selectStyle(s) },
+                            label = { Text(s.label) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = accent.copy(alpha = 0.25f),
+                                selectedLabelColor = accent,
+                            ),
+                        )
+                    }
+                }
+            }
             // Tempo
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Tempo", fontSize = 15.sp, color = TextMain, modifier = Modifier.weight(1f))
@@ -196,7 +223,7 @@ private fun Controls(state: MusicState) {
             Slider(
                 value = set.bpm.toFloat(),
                 onValueChange = { MusicRepository.setBpm(it.roundToInt()) },
-                valueRange = mood.bpmMin.toFloat()..mood.bpmMax.toFloat(),
+                valueRange = style.bpmMin.toFloat()..style.bpmMax.toFloat(),
                 colors = sliderColors,
             )
             mood.hint?.let { Text(it, fontSize = 12.sp, color = TextSoft) }
@@ -211,8 +238,8 @@ private fun Controls(state: MusicState) {
                 colors = sliderColors,
             )
             Row {
-                Text(mood.intensityLabels.first, fontSize = 12.sp, color = TextSoft, modifier = Modifier.weight(1f))
-                Text(mood.intensityLabels.second, fontSize = 12.sp, color = TextSoft)
+                Text(style.intensityLabels.first, fontSize = 12.sp, color = TextSoft, modifier = Modifier.weight(1f))
+                Text(style.intensityLabels.second, fontSize = 12.sp, color = TextSoft)
             }
 
             Spacer(Modifier.height(12.dp))
@@ -225,7 +252,7 @@ private fun Controls(state: MusicState) {
                 }
                 Spacer(Modifier.weight(1f))
                 AnimatedVisibility(
-                    visible = set.bpm != mood.bpmDefault,
+                    visible = set.bpm != style.bpmDefault,
                     enter = fadeIn() + expandVertically(),
                     exit = fadeOut() + shrinkVertically(),
                 ) {
@@ -285,6 +312,8 @@ private fun NowPlayingLine(state: MusicState, now: NowPlaying?) {
         "${info.key}  ·  ${info.chord}  ·  ${info.part}"
     } else if (state.playing) {
         "Wird komponiert …"
+    } else if (state.mood.styles.size > 1) {
+        "${state.mood.emoji}  ${state.mood.title} · ${state.style.title}"
     } else {
         "${state.mood.emoji}  ${state.mood.title}"
     }

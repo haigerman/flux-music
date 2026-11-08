@@ -8,7 +8,8 @@ in Echtzeit auf dem Handy. Die Musik läuft endlos und wiederholt sich nie exakt
 
 | Stimmung | Klang | Tempo |
 |---|---|---|
-| 🔥 **Sport** | Treibende elektronische Beats: gerade Bassdrum, pumpende Flächen, rollender Bass, Arpeggios; Spannungsbögen mit Snare-Wirbel, Rauschen und „Drop“ | 110–175 BPM |
+| 🔥 **Sport · Bass & Groove** | Treibende elektronische Beats: gerade Bassdrum, pumpende Flächen, rollender Bass, Arpeggios; Spannungsbögen mit Snare-Wirbel, Rauschen und „Drop“ | 110–175 BPM |
+| 🤘 **Sport · Rock** | Geradliniger Hardrock im Stil der großen Pub-Rock-Bands: zwei knackig verzerrte Gitarren (links/rechts) mit Powerchords und Pausen zwischen den Akkorden, Achtel-Bass, Rock-Beat mit Fills, Blues-Solo mit Bendings; Strophe → Refrain → Solo | 100–170 BPM |
 | 🎧 **Fokus** | Lo-Fi-Hip-Hop zum Arbeiten & Lernen: gedämpfte Drums mit Swing, warmes E-Piano mit Jazz-Akkorden, weicher Bass, Vinyl-Knistern; bewusst gleichmäßig | 65–100 BPM |
 | 🎨 **Kreativ** | Leichter, positiver Deep-House-Groove: Piano-Stabs, Conga & Shaker, funky Bass, Mallet-Arpeggios, sonnige Melodie | 96–124 BPM |
 | 🌿 **Entspannen** | Ambient ohne Schlagzeug: atmende Klangflächen, frei improvisierendes gedämpftes Klavier, Glocken, leises Meeresrauschen | 50–80 BPM |
@@ -16,7 +17,8 @@ in Echtzeit auf dem Handy. Die Musik läuft endlos und wiederholt sich nie exakt
 
 ## Funktionen
 
-- **Tempo** je Stimmung frei einstellbar (beim Laufen z. B. passend zur Schrittfrequenz)
+- **Varianten** – Sport gibt es als „Bass & Groove“ oder „Rock“
+- **Tempo** je Stimmung/Variante frei einstellbar (beim Laufen z. B. passend zur Schrittfrequenz)
 - **Intensität** von sanft bis kraftvoll – blendet Instrumente weich ein und aus
   (z. B. Fokus: von „nur Klavier“ bis „mit Beat & Melodie“)
 - **Neues Stück** 🎲 – blendet in ein frisch komponiertes Stück über
@@ -27,7 +29,7 @@ in Echtzeit auf dem Handy. Die Musik läuft endlos und wiederholt sich nie exakt
 - **Schlaf-Timer** (blendet in den letzten 30 s sanft aus)
 - Wiedergabe im Hintergrund mit Benachrichtigung (Pause / Neues Stück)
 - Pause bei Anruf/anderer Audio-App und beim Abziehen der Kopfhörer
-- Einstellungen werden je Stimmung gespeichert
+- Einstellungen werden je Stimmung und Variante gespeichert
 
 Mindestens Android 8.0 (API 26), Ziel-API 36.
 
@@ -45,10 +47,15 @@ einen eigenen „Komponisten“, der festlegt, welche Instrumente wann was spiel
   wiedererkennbare Motive.
 - **Rhythmus:** stiltypische Muster (Four-on-the-Floor, Boom-Bap, House-Offbeats …),
   je Stück neu kombiniert, mit leichten menschlichen Ungenauigkeiten.
-- **Klang:** alle Instrumente sind Synthesizer – Bassdrum, Snare, Clap, Hi-Hats, Shaker
-  und Conga aus Oszillatoren und Rauschen; Pads, Bässe und Leads subtraktiv; E-Piano,
-  Klavier, Vibraphon und Glocken per FM-Synthese. Dazu Hall, Ping-Pong-Echo und
-  Sidechain-„Pumpen“.
+- **Riffs (Rock):** Powerchords auf I, IV, ♭VII, ♭III und V, rhythmisch aus kleinen
+  Bausteinen zusammengesetzt (klingen lassen, kurz anschlagen, abdämpfen, Pause),
+  gelegentlich ein Blues-Lauf auf der tiefen Saite. Ein Riff wird – wie im echten Rock –
+  wiederholt, bis der nächste Songteil kommt. Nachgespielt wird nichts.
+- **Klang:** alle Instrumente sind Synthesizer – Bassdrum, Snare, Clap, Hi-Hats, Shaker,
+  Toms und Conga aus Oszillatoren und Rauschen; Pads, Bässe und Leads subtraktiv; E-Piano,
+  Klavier, Vibraphon und Glocken per FM-Synthese; E-Gitarren als physikalisch modellierte
+  Saiten (Karplus-Strong) mit Röhren-Verzerrer und Lautsprecherbox. Dazu Hall,
+  Ping-Pong-Echo und Sidechain-„Pumpen“.
 
 Die APK bleibt dadurch klein (ca. 1 MB).
 
@@ -62,12 +69,12 @@ Die APK bleibt dadurch klein (ca. 1 MB).
 | `data/MusicRepository.kt` | Gemeinsamer Zustand von UI und Dienst, gespeicherte Einstellungen |
 | `audio/AudioEngine.kt` | Audio-Thread mit `AudioTrack` |
 | `audio/MusicMixer.kt` | Überblendung zwischen Stücken, Limiter |
-| `audio/Mood.kt` | Die Stimmungen mit Tempobereichen |
+| `audio/Mood.kt` | Die Stimmungen und ihre Varianten (Stile) mit Tempobereichen |
 | `audio/songs/Song.kt` | Taktgeber, Mischpult, Songaufbau, Melodie-Hooks |
-| `audio/songs/SportSong.kt` … `AmbientSong.kt` | Die Komponisten je Stimmung |
+| `audio/songs/SportSong.kt`, `RockSong.kt` … `AmbientSong.kt` | Die Komponisten je Stimmung/Variante |
 | `audio/music/Theory.kt` | Tonarten, Akkorde, Stimmführung |
 | `audio/music/Patterns.kt` | Melodie- und Arpeggio-Generator |
-| `audio/instruments/` | Schlagzeug, Synthesizer, Texturen |
+| `audio/instruments/` | Schlagzeug, Synthesizer, E-Gitarre, Texturen |
 | `audio/dsp/Dsp.kt` | Filter, Hüllkurven, Hall, Echo, Oszillatoren |
 
 ## Lokal bauen
@@ -80,7 +87,7 @@ Voraussetzungen: JDK 17+ und das Android SDK (Platform 36).
 
 Die APK liegt danach unter `app/build/outputs/apk/debug/app-debug.apk`.
 
-`./gradlew :app:testDebugUnitTest` rendert außerdem jede Stimmung als WAV nach
+`./gradlew :app:testDebugUnitTest` rendert außerdem jede Stimmung/Variante als WAV nach
 `app/build/sound-previews/` – praktisch zum Probehören ohne Handy. Die Länge lässt sich
 einstellen (`-PpreviewSeconds=180`). Die Tests prüfen auch Übersteuerung, Knackser beim
 Wechsel und einen 15-Minuten-Dauerlauf je Stimmung.

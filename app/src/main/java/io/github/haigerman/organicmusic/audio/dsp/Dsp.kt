@@ -141,6 +141,16 @@ class Biquad(sampleRate: Int) {
         return this
     }
 
+    /** Glockenfilter: hebt/senkt um [gainDb] um die Frequenz [f]. */
+    fun peaking(f: Float, q: Float, gainDb: Float): Biquad {
+        val w = TWO_PI * f.coerceIn(10f, (sr * 0.45).toFloat()) / sr
+        val a = Math.pow(10.0, gainDb / 40.0)
+        val alpha = sin(w) / (2.0 * q)
+        val c = cos(w)
+        set(1 + alpha * a, -2 * c, 1 - alpha * a, 1 + alpha / a, -2 * c, 1 - alpha / a)
+        return this
+    }
+
     fun process(x: Float): Float {
         val y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2
         x2 = x1; x1 = x

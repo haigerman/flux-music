@@ -22,6 +22,9 @@ enum class Part(val label: String) {
     VARIATION("Variation"),
     OUTRO("Ausklang"),
     FLOAT("Schweben"),
+    VERSE("Strophe"),
+    CHORUS("Refrain"),
+    SOLO("Solo"),
 }
 
 class Section(val part: Part, val bars: Int)
@@ -157,6 +160,10 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
     /** Setzt die Zielpegel der Kanäle aus Teil und Intensität (jedes Viertel aufgerufen). */
     protected abstract fun updateLevels()
 
+    /** Anzeige von Tonart und Akkord (zu Beginn jedes Takts abgefragt). */
+    protected open fun keyName(): String = key.name
+    protected open fun chordName(): String = chord.name
+
     // ---------- Hilfen ----------
 
     protected fun channel(
@@ -264,7 +271,7 @@ abstract class Song(protected val sr: Int, seed: Long, startBpm: Float, startInt
         }
         if (s == 0) {
             onBar()
-            info = SongInfo(key.name, chord.name, section.part.label, Math.round(bpm))
+            info = SongInfo(keyName(), chordName(), section.part.label, Math.round(bpm))
         }
         onStep(s)
         return step++

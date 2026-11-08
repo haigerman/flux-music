@@ -20,7 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import io.github.haigerman.organicmusic.audio.AudioEngine
-import io.github.haigerman.organicmusic.audio.Mood
+import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.data.MusicRepository
 import io.github.haigerman.organicmusic.data.MusicState
 import io.github.haigerman.organicmusic.data.NowPlaying
@@ -59,7 +59,7 @@ class PlaybackService : LifecycleService() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var pausedByFocusLoss = false
 
-    private var songMood: Mood? = null
+    private var songStyle: Style? = null
     private var songPiece = -1
     private var notifiedText = ""
 
@@ -139,10 +139,10 @@ class PlaybackService : LifecycleService() {
         val set = s.current
         // Neues Stück bei Wechsel der Stimmung oder auf Wunsch – nur, wenn gerade gespielt wird
         // oder noch gar nichts geladen ist. Pausiert bleibt das alte Stück, bis es weitergeht.
-        val needsSong = songMood != s.mood || songPiece != s.pieceRequest
-        if (needsSong && (s.playing || songMood == null)) {
-            engine.mixer.play(s.mood.create(SAMPLE_RATE, System.nanoTime(), set.bpm.toFloat(), set.intensity))
-            songMood = s.mood
+        val needsSong = songStyle != s.style || songPiece != s.pieceRequest
+        if (needsSong && (s.playing || songStyle == null)) {
+            engine.mixer.play(s.style.create(SAMPLE_RATE, System.nanoTime(), set.bpm.toFloat(), set.intensity))
+            songStyle = s.style
             songPiece = s.pieceRequest
         }
         engine.mixer.song?.let {
@@ -262,12 +262,14 @@ class PlaybackService : LifecycleService() {
                 PendingIntent.FLAG_IMMUTABLE,
             ),
         )
-        val mood = MusicRepository.state.value.mood
+        val st = MusicRepository.state.value
+        val mood = st.mood
+        val title = if (mood.styles.size > 1) "${mood.title} · ${st.style.title}" else mood.title
         val text = notificationText()
         notifiedText = text
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_music)
-            .setContentTitle(if (isPlaying) "${mood.emoji} ${mood.title}" else "Pausiert · ${mood.title}")
+            .setContentTitle(if (isPlaying) "${mood.emoji} $title" else "Pausiert · $title")
             .setContentText(text)
             .setContentIntent(open)
             .setOngoing(isPlaying)
