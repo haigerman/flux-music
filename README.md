@@ -28,7 +28,6 @@ Schlagzeug, Bass, Gitarre …). Die Musik läuft endlos und wiederholt sich nie 
 - Stücke entwickeln sich selbst weiter: Intro → Groove → Thema/Steigerung → Höhepunkt →
   Atempause …; danach beginnt ein neuer Teil mit neuen Mustern und oft neuer Tonart
 - Anzeige, was gerade erklingt (Tonart · Akkord · Teil) und ein Play-Knopf, der im Takt pulsiert
-- **Schlaf-Timer** (blendet in den letzten 30 s sanft aus)
 - Wiedergabe im Hintergrund mit Benachrichtigung (Pause / Neues Stück)
 - Pause bei Anruf/anderer Audio-App und beim Abziehen der Kopfhörer
 - Einstellungen werden je Stimmung und Variante gespeichert
@@ -78,8 +77,8 @@ jederzeit in den Android-Einstellungen geleert werden.
 | Datei | Aufgabe |
 |---|---|
 | `MainActivity.kt` | Startet die Oberfläche |
-| `ui/MusicScreen.kt` | Hauptbildschirm: Stimmungen, Tempo, Intensität, Timer, Play |
-| `PlaybackService.kt` | Wiedergabe im Hintergrund, Benachrichtigung, Timer, Audiofokus |
+| `ui/MusicScreen.kt` | Hauptbildschirm: Stimmungen, Tempo, Intensität, Play |
+| `PlaybackService.kt` | Wiedergabe im Hintergrund, Benachrichtigung, Audiofokus |
 | `data/MusicRepository.kt` | Gemeinsamer Zustand von UI und Dienst, gespeicherte Einstellungen |
 | `audio/AudioEngine.kt` | Audio-Thread mit `AudioTrack` |
 | `audio/MusicMixer.kt` | Überblendung zwischen Stücken, Limiter |

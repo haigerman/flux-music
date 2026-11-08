@@ -46,7 +46,6 @@ class PlaybackService : LifecycleService() {
         private const val NOTIFICATION_ID = 1
         private const val SAMPLE_RATE = 48000
         private const val TICK_MS = 100L
-        private const val TIMER_FADE_MS = 30_000L
 
         fun play(context: Context) {
             ContextCompat.startForegroundService(
@@ -196,23 +195,7 @@ class PlaybackService : LifecycleService() {
         if (ticker?.isActive == true) return
         ticker = lifecycleScope.launch {
             while (isActive) {
-                val s = MusicRepository.state.value
-                if (playing) {
-                    var factor = 1f
-                    if (s.timerEndsAt > 0) {
-                        val remaining = s.timerEndsAt - System.currentTimeMillis()
-                        if (remaining <= 0) {
-                            MusicRepository.setPlaying(false)
-                            factor = 0f
-                        } else if (remaining < TIMER_FADE_MS) {
-                            // sanftes, langes Ausblenden in den letzten 30 Sekunden
-                            val x = remaining.toFloat() / TIMER_FADE_MS
-                            factor = x * x
-                        }
-                    }
-                    if (playing) engine.mixer.masterTarget = factor
-                    publishNowPlaying()
-                }
+                if (playing) publishNowPlaying()
                 if (!playing && !engine.isRunning) {
                     onFullyStopped()
                     break

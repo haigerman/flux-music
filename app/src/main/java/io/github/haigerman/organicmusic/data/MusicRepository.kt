@@ -19,10 +19,6 @@ data class MusicState(
     val styles: Map<Mood, Style> = emptyMap(),
     val settings: Map<Style, MoodSettings> = emptyMap(),
     val playing: Boolean = false,
-    /** 0 = kein Timer */
-    val timerMinutes: Int = 0,
-    /** System.currentTimeMillis(), wann der Timer abläuft; 0 = keiner aktiv */
-    val timerEndsAt: Long = 0L,
     /** Wird bei "Neues Stück" hochgezählt. */
     val pieceRequest: Int = 0,
 ) {
@@ -77,7 +73,6 @@ object MusicRepository {
             mood = Mood.byId(p.getString("mood", null)),
             styles = styles,
             settings = settings,
-            timerMinutes = p.getInt("timer", 0),
         )
     }
 
@@ -113,24 +108,8 @@ object MusicRepository {
     }
 
     fun setPlaying(playing: Boolean) {
-        _state.update { s ->
-            if (s.playing == playing) s
-            else s.copy(
-                playing = playing,
-                timerEndsAt = if (playing && s.timerMinutes > 0) System.currentTimeMillis() + s.timerMinutes * 60_000L else 0L,
-            )
-        }
+        _state.update { s -> if (s.playing == playing) s else s.copy(playing = playing) }
         if (!playing) _nowPlaying.value = _nowPlaying.value?.copy(bpm = 0f)
-    }
-
-    fun setTimer(minutes: Int) {
-        _state.update { s ->
-            s.copy(
-                timerMinutes = minutes,
-                timerEndsAt = if (s.playing && minutes > 0) System.currentTimeMillis() + minutes * 60_000L else 0L,
-            )
-        }
-        save()
     }
 
     fun publish(np: NowPlaying?) {
@@ -146,7 +125,7 @@ object MusicRepository {
                 putInt("bpm_${st.key}", v.bpm)
                 putFloat("int_${st.key}", v.intensity)
             }
-            putInt("timer", s.timerMinutes)
+            remove("timer") // früherer Schlaf-Timer – nicht mehr verwendet
             apply()
         }
     }

@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,7 +44,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -68,14 +66,11 @@ import io.github.haigerman.organicmusic.audio.Style
 import io.github.haigerman.organicmusic.data.MusicRepository
 import io.github.haigerman.organicmusic.data.MusicState
 import io.github.haigerman.organicmusic.data.NowPlaying
-import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.floor
 import kotlin.math.roundToInt
-
-private val timerOptions = listOf(0, 15, 30, 45, 60, 90)
 
 /** Beschriftung der Intensität je Stil: (niedrig, hoch). */
 private val Style.intensityLabels: Pair<String, String>
@@ -100,7 +95,6 @@ private val Style.label: String
 private val Mood.hint: String?
     get() = when (this) {
         Mood.SPORT -> "Tipp Laufen: Tempo ≈ Schritte pro Minute (meist 160–180)"
-        Mood.SLEEP -> "Tipp: Schlaf-Timer unten einstellen – die Musik blendet sanft aus"
         else -> null
     }
 
@@ -274,7 +268,6 @@ private fun Controls(state: MusicState) {
 
 @Composable
 private fun BottomPanel(state: MusicState, now: NowPlaying?, loading: Boolean, onPlayPause: () -> Unit, modifier: Modifier = Modifier) {
-    val accent = state.mood.accent
     Column(
         modifier
             .fillMaxWidth()
@@ -286,29 +279,7 @@ private fun BottomPanel(state: MusicState, now: NowPlaying?, loading: Boolean, o
         Spacer(Modifier.height(10.dp))
         PlayButton(state, now, onPlayPause)
         Spacer(Modifier.height(6.dp))
-        TimerText(state)
-        Spacer(Modifier.height(8.dp))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            item {
-                Box(Modifier.height(32.dp), contentAlignment = Alignment.Center) {
-                    Text("⏾ Timer", fontSize = 13.sp, color = TextSoft, modifier = Modifier.padding(end = 2.dp))
-                }
-            }
-            items(timerOptions) { m ->
-                FilterChip(
-                    selected = state.timerMinutes == m,
-                    onClick = { MusicRepository.setTimer(m) },
-                    label = { Text(if (m == 0) "Aus" else "$m Min") },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = accent.copy(alpha = 0.25f),
-                        selectedLabelColor = accent,
-                    ),
-                )
-            }
-        }
+        StatusText(state)
     }
 }
 
@@ -330,22 +301,8 @@ private fun NowPlayingLine(state: MusicState, now: NowPlaying?, loading: Boolean
 }
 
 @Composable
-private fun TimerText(state: MusicState) {
-    var nowMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    LaunchedEffect(state.timerEndsAt, state.playing) {
-        while (state.playing && state.timerEndsAt > 0) {
-            nowMs = System.currentTimeMillis()
-            delay(1000)
-        }
-    }
-    val text = when {
-        state.playing && state.timerEndsAt > 0 -> {
-            val rem = ((state.timerEndsAt - nowMs) / 1000).coerceAtLeast(0)
-            "Endet in %d:%02d".format(rem / 60, rem % 60)
-        }
-        state.playing -> "Läuft endlos – jedes Stück ist neu"
-        else -> "Tippe zum Starten"
-    }
+private fun StatusText(state: MusicState) {
+    val text = if (state.playing) "Läuft endlos – jedes Stück ist neu" else "Tippe zum Starten"
     Text(text, fontSize = 13.sp, color = TextSoft)
 }
 
