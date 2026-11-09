@@ -4,25 +4,25 @@
     android:viewportWidth="108" android:viewportHeight="108">
     <!-- Flux-Kompensator: drei Klangwellen pulsieren in Röhren ("Y") zu einem leuchtenden Kern -->
     <!-- Röhren -->
-    <path android:strokeColor="#FF1F3C47" android:strokeWidth="8" android:strokeLineCap="round"
-        android:pathData="M47.94,49.00 L29.66,38.45" />
-    <path android:strokeColor="#FF1F3C47" android:strokeWidth="8" android:strokeLineCap="round"
-        android:pathData="M60.06,49.00 L78.34,38.45" />
-    <path android:strokeColor="#FF1F3C47" android:strokeWidth="8" android:strokeLineCap="round"
-        android:pathData="M54.00,59.50 L54.00,80.60" />
-    <!-- Lichthof -->
-    <path android:fillColor="#38E8C77A" android:pathData="M54.00,52.50 m-11.00,0 a11.00,11.00 0 1,0 22.00,0 a11.00,11.00 0 1,0 -22.00,0" />
+    <path android:strokeColor="#FF1F3C47" android:strokeWidth="9.6" android:strokeLineCap="round"
+        android:pathData="M54.00,52.50 L30.53,38.95" />
+    <path android:strokeColor="#FF1F3C47" android:strokeWidth="9.6" android:strokeLineCap="round"
+        android:pathData="M54.00,52.50 L77.47,38.95" />
+    <path android:strokeColor="#FF1F3C47" android:strokeWidth="9.6" android:strokeLineCap="round"
+        android:pathData="M54.00,52.50 L54.00,79.60" />
     <!-- Klangwellen -->
-    <path android:strokeColor="#FFFF8A65" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M46.21,48.00 L45.94,47.81 L45.72,47.55 L45.52,47.25 L45.34,46.92 L45.15,46.59 L44.96,46.28 L44.73,46.03 L44.47,45.85 L44.15,45.75 L43.77,45.76 L43.33,45.87 L42.85,46.06 L42.33,46.32 L41.79,46.61 L41.25,46.90 L40.74,47.14 L40.34,47.18 L40.02,47.09 L39.78,46.86 L39.62,46.50 L39.52,46.02 L39.48,45.44 L39.48,44.80 L39.49,44.12 L39.51,43.45 L39.51,42.81 L39.47,42.23 L39.37,41.75 L39.21,41.39 L38.97,41.16 L38.65,41.07 L38.25,41.11 L37.79,41.26 L37.27,41.51 L36.72,41.83 L36.14,42.19 L35.56,42.54 L35.00,42.86 L34.49,43.11 L34.02,43.27 L33.63,43.30 L33.43,43.01 L33.32,42.55 L33.25,42.02 L33.19,41.47 L33.11,40.97 L32.98,40.55 L32.78,40.25" />
-    <path android:strokeColor="#FFFF8A65" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M61.79,48.00 L62.09,47.87 L62.43,47.80 L62.79,47.78 L63.16,47.79 L63.54,47.79 L63.90,47.78 L64.24,47.71 L64.53,47.57 L64.77,47.34 L64.95,47.01 L65.08,46.58 L65.15,46.06 L65.19,45.48 L65.21,44.87 L65.23,44.26 L65.27,43.69 L65.44,43.33 L65.68,43.10 L66.00,43.01 L66.39,43.05 L66.85,43.20 L67.37,43.45 L67.93,43.77 L68.51,44.12 L69.08,44.48 L69.64,44.80 L70.16,45.05 L70.62,45.20 L71.02,45.24 L71.33,45.15 L71.57,44.92 L71.74,44.56 L71.84,44.08 L71.88,43.51 L71.88,42.86 L71.86,42.19 L71.84,41.51 L71.85,40.87 L71.89,40.29 L71.98,39.82 L72.15,39.46 L72.50,39.43 L72.96,39.57 L73.45,39.77 L73.95,39.99 L74.43,40.17 L74.86,40.27 L75.22,40.25" />
-    <path android:strokeColor="#FFFF8A65" android:strokeWidth="3" android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M54.00,61.50 L53.96,61.82 L53.86,62.15 L53.70,62.47 L53.50,62.79 L53.31,63.11 L53.14,63.44 L53.03,63.76 L53.00,64.08 L53.09,64.41 L53.28,64.73 L53.59,65.05 L54.00,65.38 L54.48,65.70 L55.01,66.02 L55.52,66.34 L55.99,66.67 L56.22,66.99 L56.30,67.31 L56.22,67.64 L55.99,67.96 L55.63,68.28 L55.15,68.60 L54.60,68.93 L54.00,69.25 L53.40,69.57 L52.85,69.90 L52.37,70.22 L52.01,70.54 L51.78,70.86 L51.70,71.19 L51.78,71.51 L52.01,71.83 L52.37,72.16 L52.85,72.48 L53.40,72.80 L54.00,73.12 L54.60,73.45 L55.15,73.77 L55.63,74.09 L55.99,74.42 L56.22,74.74 L56.07,75.06 L55.72,75.39 L55.29,75.71 L54.85,76.03 L54.46,76.35 L54.16,76.68 L54.00,77.00" />
+    <path android:strokeColor="#FFFF8A65" android:strokeWidth="4.0" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M48.37,49.25 L48.14,49.09 L47.93,48.88 L47.75,48.63 L47.59,48.34 L47.44,48.03 L47.30,47.70 L47.17,47.36 L47.04,47.02 L46.90,46.69 L46.75,46.39 L46.58,46.12 L46.38,45.90 L46.15,45.74 L45.88,45.63 L45.57,45.59 L45.18,45.71 L44.77,45.86 L44.34,46.03 L43.90,46.22 L43.46,46.42 L43.02,46.61 L42.59,46.80 L42.16,46.97 L41.75,47.12 L41.35,47.24 L40.98,47.32 L40.63,47.35 L40.31,47.34 L40.02,47.28 L39.76,47.17 L39.53,47.00 L39.33,46.78 L39.16,46.50 L39.02,46.18 L38.90,45.82 L38.80,45.42 L38.72,44.99 L38.66,44.54 L38.61,44.06 L38.56,43.58 L38.51,43.10 L38.45,42.63 L38.39,42.18 L38.31,41.74 L38.21,41.34 L38.09,40.98 L37.95,40.66 L37.78,40.39 L37.58,40.17 L37.35,40.00 L37.09,39.89 L36.74,39.93 L36.31,40.10 L35.88,40.29 L35.45,40.46 L35.03,40.62 L34.64,40.73 L34.27,40.80 L33.94,40.81 L33.65,40.75" />
+    <path android:strokeColor="#FFFF8A65" android:strokeWidth="4.0" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M59.63,49.25 L59.89,49.13 L60.17,49.06 L60.48,49.02 L60.81,49.02 L61.15,49.05 L61.51,49.10 L61.87,49.16 L62.23,49.21 L62.58,49.26 L62.92,49.28 L63.23,49.26 L63.52,49.20 L63.78,49.08 L64.01,48.90 L64.19,48.66 L64.29,48.26 L64.37,47.82 L64.43,47.37 L64.49,46.90 L64.54,46.42 L64.59,45.94 L64.64,45.46 L64.71,45.01 L64.78,44.58 L64.88,44.18 L65.00,43.82 L65.14,43.50 L65.31,43.22 L65.51,43.00 L65.74,42.83 L66.00,42.72 L66.29,42.66 L66.61,42.65 L66.96,42.68 L67.33,42.76 L67.73,42.88 L68.14,43.03 L68.57,43.20 L69.00,43.39 L69.44,43.58 L69.89,43.78 L70.32,43.97 L70.75,44.14 L71.16,44.29 L71.55,44.41 L71.93,44.48 L72.28,44.52 L72.60,44.51 L72.89,44.45 L73.15,44.33 L73.38,44.16 L73.52,43.84 L73.58,43.38 L73.64,42.91 L73.70,42.45 L73.77,42.02 L73.87,41.62 L74.00,41.27 L74.16,40.98 L74.35,40.75" />
+    <path android:strokeColor="#FFFF8A65" android:strokeWidth="4.0" android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M54.00,59.00 L53.97,59.28 L53.90,59.57 L53.77,59.85 L53.61,60.13 L53.41,60.42 L53.19,60.70 L52.96,60.98 L52.73,61.27 L52.52,61.55 L52.33,61.83 L52.19,62.12 L52.10,62.40 L52.07,62.68 L52.11,62.97 L52.23,63.25 L52.53,63.53 L52.87,63.82 L53.23,64.10 L53.61,64.38 L54.00,64.67 L54.39,64.95 L54.77,65.23 L55.13,65.52 L55.47,65.80 L55.77,66.08 L56.02,66.37 L56.23,66.65 L56.38,66.93 L56.47,67.22 L56.50,67.50 L56.47,67.78 L56.38,68.07 L56.23,68.35 L56.02,68.63 L55.77,68.92 L55.47,69.20 L55.13,69.48 L54.77,69.77 L54.39,70.05 L54.00,70.33 L53.61,70.62 L53.23,70.90 L52.87,71.18 L52.53,71.47 L52.23,71.75 L51.98,72.03 L51.77,72.32 L51.62,72.60 L51.53,72.88 L51.50,73.17 L51.53,73.45 L51.74,73.73 L52.11,74.02 L52.48,74.30 L52.85,74.58 L53.19,74.87 L53.49,75.15 L53.73,75.43 L53.90,75.72 L54.00,76.00" />
+    <!-- Lichthof -->
+    <path android:fillColor="#4DE8C77A" android:pathData="M54.00,52.50 m-14.00,0 a14.00,14.00 0 1,0 28.00,0 a14.00,14.00 0 1,0 -28.00,0" />
     <!-- Anschlüsse -->
-    <path android:fillColor="#FF7FD1AE" android:pathData="M29.66,38.45 m-3.30,0 a3.30,3.30 0 1,0 6.60,0 a3.30,3.30 0 1,0 -6.60,0" />
-    <path android:fillColor="#FF7FD1AE" android:pathData="M78.34,38.45 m-3.30,0 a3.30,3.30 0 1,0 6.60,0 a3.30,3.30 0 1,0 -6.60,0" />
-    <path android:fillColor="#FF7FD1AE" android:pathData="M54.00,80.60 m-3.30,0 a3.30,3.30 0 1,0 6.60,0 a3.30,3.30 0 1,0 -6.60,0" />
+    <path android:fillColor="#FF7FD1AE" android:pathData="M30.53,38.95 m-3.60,0 a3.60,3.60 0 1,0 7.20,0 a3.60,3.60 0 1,0 -7.20,0" />
+    <path android:fillColor="#FF7FD1AE" android:pathData="M77.47,38.95 m-3.60,0 a3.60,3.60 0 1,0 7.20,0 a3.60,3.60 0 1,0 -7.20,0" />
+    <path android:fillColor="#FF7FD1AE" android:pathData="M54.00,79.60 m-3.60,0 a3.60,3.60 0 1,0 7.20,0 a3.60,3.60 0 1,0 -7.20,0" />
     <!-- leuchtender Kern -->
-    <path android:fillColor="#FFE8C77A" android:pathData="M54.00,52.50 m-6.40,0 a6.40,6.40 0 1,0 12.80,0 a6.40,6.40 0 1,0 -12.80,0" />
+    <path android:fillColor="#FFE8C77A" android:pathData="M54.00,52.50 m-8.40,0 a8.40,8.40 0 1,0 16.80,0 a8.40,8.40 0 1,0 -16.80,0" />
 </vector>
