@@ -10,8 +10,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import io.github.haigerman.organicmusic.data.MusicRepository
+import io.github.haigerman.organicmusic.ui.FluxTheme
 import io.github.haigerman.organicmusic.ui.MusicScreen
-import io.github.haigerman.organicmusic.ui.OrganicTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
         MusicRepository.init(this)
         enableEdgeToEdge()
         setContent {
-            OrganicTheme {
+            FluxTheme {
                 MusicScreen(onPlayPause = ::togglePlayback)
             }
         }

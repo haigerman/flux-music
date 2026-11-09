@@ -133,7 +133,7 @@ fun MusicScreen(onPlayPause: () -> Unit) {
 @Composable
 private fun Header(modifier: Modifier = Modifier) {
     Column(modifier.padding(start = 24.dp, end = 24.dp, top = 20.dp, bottom = 8.dp)) {
-        Text("Organic Music", fontSize = 30.sp, fontWeight = FontWeight.Light, color = TextMain)
+        Text("Flux Music", fontSize = 30.sp, fontWeight = FontWeight.Light, color = TextMain)
         Text(
             "Live komponiert – passend zu deiner Stimmung",
             fontSize = 14.sp,

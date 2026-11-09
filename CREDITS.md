@@ -1,6 +1,6 @@
 # Quellen der Instrumente
 
-Organic Music komponiert live, spielt aber echte Instrumentenaufnahmen. Die Aufnahmen stammen
+Flux Music komponiert live, spielt aber echte Instrumentenaufnahmen. Die Aufnahmen stammen
 aus freien Sample-Bibliotheken. Für die App wurden daraus Auszüge gewählt, gekürzt, teils
 gemischt (Schlagzeug-Mikrofone), mit Loops versehen und als Ogg Vorbis neu kodiert
 (siehe `tools/build_instruments.py`).

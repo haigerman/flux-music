@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "OrganicMusic"
+rootProject.name = "FluxMusic"
 include(":app")

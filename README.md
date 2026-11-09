@@ -1,6 +1,6 @@
 <img src="docs/icon.png" width="128" alt="App-Icon: Keimling, der aus einer Klangwelle wächst">
 
-# Organic Music
+# Flux Music
 
 Android-App, die **live Musik komponiert** – passend zu Stimmung und Zweck. Tonart,
 Akkordfolgen, Rhythmen, Melodien und der Aufbau der Stücke entstehen in Echtzeit auf dem
@@ -144,7 +144,7 @@ Tonhöhe jedes Samples nach und schreibt `assets/instruments/<id>/`.
 
    Keystore erzeugen (falls noch keiner vorhanden):
    ```bash
-   keytool -genkeypair -v -keystore release.jks -alias organicmusic -keyalg RSA -keysize 4096 -validity 36500
+   keytool -genkeypair -v -keystore release.jks -alias fluxmusic -keyalg RSA -keysize 4096 -validity 36500
    ```
    Den Keystore gut aufbewahren – Updates funktionieren nur mit derselben Signatur.
 2. Tag pushen:

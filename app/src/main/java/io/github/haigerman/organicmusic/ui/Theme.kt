@@ -43,6 +43,6 @@ private val colors = darkColorScheme(
 )
 
 @Composable
-fun OrganicTheme(content: @Composable () -> Unit) {
+fun FluxTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = colors, content = content)
 }
