@@ -152,6 +152,6 @@ Tonhöhe jedes Samples nach und schreibt `assets/instruments/<id>/`.
    git tag v0.1.0 && git push origin v0.1.0
    ```
    Der Workflow baut die signierte APK und hängt sie an ein GitHub-Release.
-3. In Obtainium: *App hinzufügen* → `https://github.com/haigerman/organic-music`.
+3. In Obtainium: *App hinzufügen* → `https://github.com/haigerman/flux-music`.
 
 Versionscode wird aus dem Tag berechnet (`v1.2.3` → 10203).
