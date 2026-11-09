@@ -289,7 +289,7 @@ private fun BottomPanel(state: MusicState, now: NowPlaying?, loading: Boolean, o
             .padding(top = 12.dp, bottom = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        NowPlayingLine(state, now, loading)
+        NowPlayingLine(state, loading)
         Spacer(Modifier.height(10.dp))
         PlayButton(state, now, onPlayPause)
         Spacer(Modifier.height(6.dp))
@@ -298,14 +298,9 @@ private fun BottomPanel(state: MusicState, now: NowPlaying?, loading: Boolean, o
 }
 
 @Composable
-private fun NowPlayingLine(state: MusicState, now: NowPlaying?, loading: Boolean) {
-    val info = now?.info
+private fun NowPlayingLine(state: MusicState, loading: Boolean) {
     val text = if (state.playing && loading) {
         "Instrumente werden geladen …"
-    } else if (state.playing && info != null && info.key.isNotEmpty()) {
-        "${info.key}  ·  ${info.chord}  ·  ${info.part}"
-    } else if (state.playing) {
-        "Wird komponiert …"
     } else if (state.mood.styles.size > 1) {
         "${state.mood.emoji}  ${state.mood.title} · ${state.style.title}"
     } else {

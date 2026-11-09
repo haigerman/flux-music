@@ -235,10 +235,7 @@ class PlaybackService : LifecycleService() {
         )
     }
 
-    private fun notificationText(): String {
-        val info = MusicRepository.nowPlaying.value?.info
-        return if (info == null || info.key.isEmpty()) "Wird komponiert …" else "${info.key} · ${info.part}"
-    }
+    private fun notificationText(): String = "Live komponiert – jedes Stück ist neu"
 
     private fun buildNotification(isPlaying: Boolean): Notification {
         val open = PendingIntent.getActivity(
