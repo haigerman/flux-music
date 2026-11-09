@@ -139,6 +139,9 @@ Tonhöhe jedes Samples nach und schreibt `assets/instruments/<id>/`.
    - `KEYSTORE_BASE64` – Keystore, base64-kodiert (`base64 -w0 release.jks`)
    - `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`
 
+   Alternativ funktionieren auch die Namen wie bei First Light (`SIGNING_KEYSTORE_BASE64`,
+   `SIGNING_KEYSTORE_PASSWORD`, `SIGNING_KEY_ALIAS`, `SIGNING_KEY_PASSWORD`).
+
    Keystore erzeugen (falls noch keiner vorhanden):
    ```bash
    keytool -genkeypair -v -keystore release.jks -alias organicmusic -keyalg RSA -keysize 4096 -validity 36500
