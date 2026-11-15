@@ -40,7 +40,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = if (keystoreFile != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // Nur mit dem eigenen Release-Schlüssel signieren, nie still mit dem Debug-Key
+            if (keystoreFile != null) signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -83,6 +84,22 @@ val copyCredits by tasks.registering(Copy::class) {
 }
 android.sourceSets["main"].assets.srcDir(creditsDir)
 tasks.named("preBuild") { dependsOn(copyCredits) }
+
+// Release-Build ohne Keystore abbrechen: eine debug-signierte "Release"-APK löst
+// Play-Protect-Warnungen aus und lässt sich nicht über die Obtainium-Version updaten.
+val hasReleaseKeystore = keystoreFile != null
+tasks.configureEach {
+    if (name == "packageRelease" || name == "signReleaseBundle") {
+        doFirst {
+            if (!hasReleaseKeystore) {
+                throw GradleException(
+                    "Kein Release-Keystore: KEYSTORE_FILE, KEYSTORE_PASSWORD, KEY_ALIAS und KEY_PASSWORD setzen " +
+                        "(siehe README, Abschnitt Release). Zum Testen assembleDebug verwenden."
+                )
+            }
+        }
+    }
+}
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2025.12.01")
